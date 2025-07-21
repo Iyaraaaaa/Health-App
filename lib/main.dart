@@ -6,7 +6,6 @@ import 'package:health_project/screens/forgot_password.dart';
 import 'screens/landing_page.dart';
 import 'screens/login_page.dart';
 import 'screens/signup_page.dart';
-import 'screens/forget_password.dart';  
 import 'screens/home_screen.dart';
 
 void main() {
