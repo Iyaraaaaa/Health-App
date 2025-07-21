@@ -1,8 +1,25 @@
-
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'login_page.dart'; // Replace with your actual login page import
 
-class LandingPage extends StatelessWidget {
+class LandingPage extends StatefulWidget {
   const LandingPage({super.key, required void Function(Locale locale) onLocaleChange, required Locale locale});
+
+  @override
+  State<LandingPage> createState() => _LandingPageState();
+}
+
+class _LandingPageState extends State<LandingPage> {
+  @override
+  void initState() {
+    super.initState();
+    Timer(const Duration(seconds: 3), () {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,20 +27,48 @@ class LandingPage extends StatelessWidget {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset('assets/images/landing_bg.jpg', fit: BoxFit.cover),
-          Container(
-            color: Colors.black.withOpacity(0.5),
-          ),
+          Image.asset('assets/images/landing.jpg', fit: BoxFit.cover),
+          Container(color: Colors.black.withOpacity(0.6)),
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                Text('Welcome to Ministry of Health Sri Lanka',
-                    style: TextStyle(color: Colors.white, fontSize: 24)),
-                Text('ශ්‍රී ලංකා සෞඛ්‍ය අමාත්‍යාංශයට සාදරයෙන් පිළිගනිමු',
-                    style: TextStyle(color: Colors.white, fontSize: 18)),
-                Text('இலங்கை சுகாதார அமைச்சில் உங்களை வரவேற்கிறோம்',
-                    style: TextStyle(color: Colors.white, fontSize: 18)),
+                Text(
+                  'Welcome to Ministry of Health',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(
+                        blurRadius: 10,
+                        color: Colors.black87,
+                        offset: Offset(1, 1),
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 10),
+                Text(
+                  'සෞඛ්‍ය අමාත්‍යාංශයට සාදරයෙන් පිළිගනිමු',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 20,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 5),
+                Text(
+                  'சுகாதார அமைச்சில் உங்களை வரவேற்கிறோம்',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 20,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           ),
