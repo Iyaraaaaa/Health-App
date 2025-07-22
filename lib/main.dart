@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:health_project/l10n/generated/app_localizations.dart';
 import 'package:health_project/screens/forgot_password.dart';
-import 'package:health_project/screens/on_boarding.dart'; // Choose one onboarding file
-import 'package:health_project/screens/login_page.dart';
-import 'package:health_project/screens/signup_page.dart';
-import 'package:health_project/screens/home_screen.dart';
-import 'package:health_project/screens/landing_page.dart'; // Add this import
+import 'package:health_project/screens/splash_screen.dart';
+
+import 'screens/login_page.dart' hide OnBoardingScreen;
+import 'screens/on_bording.dart' show OnBoardingScreen;
+import 'screens/signup_page.dart';
+import 'screens/home_screen.dart';
+import 'screens/welcome.dart';
 
 void main() {
   runApp(const MyApp());
@@ -43,19 +45,19 @@ class _MyAppState extends State<MyApp> {
         Locale('si'),
         Locale('ta'),
       ],
-      initialRoute: '/landing', // Standardized route name
+      initialRoute: '/splash',
       routes: {
-        '/landing': (context) => LandingPage(onLocaleChange: setLocale, locale: _locale),
-        '/onboarding': (context) => const OnBoardingScreen(), // Standardized name
-        '/login': (context) => const LoginPage(),
+        '/splash': (context) => const SplashScreen(),
+        '/welcome': (context) => const WelcomePage(),
+        '/on_boarding': (context) => const OnBoardingScreen(),
+        '/login_page': (context) => const LoginPage(),
         '/signup': (context) => const SignupPage(),
-        '/forgot-password': (context) => const ForgotPasswordPage(), // Hyphenated
-        '/home': (context) => HomeScreen(onLocaleChange: setLocale, locale: _locale),
+        '/forgot_password': (context) => const ForgetPage(),
+        '/home': (context) => HomeScreen(
+              onLocaleChange: setLocale,
+              locale: _locale,
+            ),
       },
     );
   }
-}
-
-class ForgotPasswordPage {
-  const ForgotPasswordPage();
 }

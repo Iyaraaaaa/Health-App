@@ -32,11 +32,12 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  intl: ^0.20.2
+  intl: any
   shared_preferences: ^2.2.3
   cupertino_icons: ^1.0.7
   http: ^1.2.1
   flutter_gen: ^5.4.0
+  intl_utils: ^2.8.11
   
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -48,6 +49,8 @@ dev_dependencies:
   flutter_gen_runner: ^5.4.0
   build_runner: ^2.4.8
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.1
   
 
 flutter:
@@ -76,6 +79,8 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/images/logo.jpg
-  adaptive_icon_background: "#ffffff"
-  adaptive_icon_foreground: "assets/images/logo.jpg"
+  image_path: "assets/images/logo.jpg"  # Path relative to project root
+  adaptive_icon_background: "#2196F3"   # Use your brand blue color
+  adaptive_icon_foreground: "android/app/src/main/icon.png" # Optional
+  min_sdk_android: 21
+

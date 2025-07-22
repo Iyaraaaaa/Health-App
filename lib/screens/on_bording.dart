@@ -1,191 +1,176 @@
 import 'package:flutter/material.dart';
 
-class CombinedOnboardingScreen extends StatefulWidget {
-  const CombinedOnboardingScreen({super.key});
+class OnBoardingScreen extends StatefulWidget {
+  const OnBoardingScreen({super.key});
 
   @override
-  State<CombinedOnboardingScreen> createState() => _CombinedOnboardingScreenState();
+  State<OnBoardingScreen> createState() => _OnBoardingScreenState();
 }
 
-class _CombinedOnboardingScreenState extends State<CombinedOnboardingScreen> {
-  final PageController _pageController = PageController();
-  int _currentPage = 0;
+class _OnBoardingScreenState extends State<OnBoardingScreen> {
+  final PageController controller = PageController();
+  int selectPage = 0;
 
-  final List<Widget> _pages = [
-    // Landing Page (now first onboarding screen)
-    _buildLandingPage(),
-    
-    // Regular onboarding screens
-    _buildOnboardingPage(
-      image: 'assets/images/on_board_1.avif',
-      title: 'Access Quality Healthcare',
-      description: 'Connect with certified doctors and health services near you.',
-    ),
-    _buildOnboardingPage(
-      image: 'assets/images/on_board_2.jpg',
-      title: 'Easy Appointment Booking',
-      description: 'Schedule your health visits seamlessly and securely.',
-    ),
-    _buildOnboardingPage(
-      image: 'assets/images/on_board_3.jpg',
-      title: 'Your Health, Our Priority',
-      description: 'Committed to providing reliable and caring health support.',
-    ),
+  final List<Map<String, String>> pageArr = [
+    {
+      "img": "assets/images/on_board_1.avif",
+      "title": "Access Quality Healthcare",
+      "subtitle": "Connect with certified doctors and health services near you.",
+    },
+    {
+      "img": "assets/images/on_board_2.jpg",
+      "title": "Easy Appointment Booking",
+      "subtitle": "Schedule your health visits seamlessly and securely.",
+    },
+    {
+      "img": "assets/images/on_board_3.jpg",
+      "title": "Your Health, Our Priority",
+      "subtitle": "Committed to providing reliable and caring health support.",
+    },
   ];
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.teal.shade700,
       body: Stack(
         children: [
-          PageView(
-            controller: _pageController,
-            onPageChanged: (index) {
+          PageView.builder(
+            controller: controller,
+            itemCount: pageArr.length,
+            onPageChanged: (page) {
               setState(() {
-                _currentPage = index;
+                selectPage = page;
               });
             },
-            children: _pages,
+            itemBuilder: (context, index) {
+              final obj = pageArr[index];
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      height: size.height * 0.6,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        image: DecorationImage(
+                          image: AssetImage(obj["img"]!),
+                          fit: BoxFit.cover,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white,
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          )
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Text(
+                      obj["title"]!,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 6,
+                            color: Colors.black45,
+                            offset: Offset(1, 1),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      obj["subtitle"]!,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 18,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(pageArr.length, (i) {
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: selectPage == i ? 12 : 8,
+                          height: selectPage == i ? 12 : 8,
+                          decoration: BoxDecoration(
+                            color: selectPage == i ? Colors.white : Colors.white54,
+                            shape: BoxShape.circle,
+                          ),
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
-          
-          // Page indicators
+
+          // Bottom controls
           Positioned(
-            bottom: 100,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(_pages.length, (index) {
-                return Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: _currentPage == index ? Colors.blue : Colors.grey,
-                    shape: BoxShape.circle,
-                  ),
-                );
-              }),
-            ),
-          ),
-          
-          // Navigation buttons
-          Positioned(
-            bottom: 50,
+            bottom: 70,
             left: 20,
             right: 20,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Skip button (shown on all pages except last)
-                if (_currentPage < _pages.length - 1)
-                  TextButton(
-                    onPressed: () => _goToLogin(),
-                    child: const Text(
-                      'Skip',
-                      style: TextStyle(color: Colors.blue),
-                    ),
-                  ),
-                
-                // Next/Get Started button
-                ElevatedButton(
+                // Skip always visible
+                TextButton(
                   onPressed: () {
-                    if (_currentPage < _pages.length - 1) {
-                      _pageController.nextPage(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeIn,
-                      );
-                    } else {
-                      _goToLogin();
-                    }
+                    Navigator.pushReplacementNamed(context, '/login_page');
                   },
-                  style: ElevatedButton.styleFrom(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                     backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: Text(
-                    _currentPage < _pages.length - 1 ? 'Next' : 'Get Started',
+                  child: const Text(
+                    "Skip",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
+
+                // Next or Get Started button
+                selectPage == pageArr.length - 1
+                    ? ElevatedButton(
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(context, '/login_page');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: const Text("Get Started", style: TextStyle(fontSize: 16)),
+                      )
+                    : ElevatedButton(
+                        onPressed: () {
+                          controller.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeIn,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 14),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: const Text("Next", style: TextStyle(fontSize: 16)),
+                      ),
               ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _goToLogin() {
-    Navigator.pushReplacementNamed(context, '/login');
-  }
-
-  static Widget _buildLandingPage() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset('assets/images/landing.jpg', height: 300),
-          const SizedBox(height: 40),
-          const Text(
-            'Welcome to Ministry of Health',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'සෞඛ්‍ය අමාත්‍යාංශයට සාදරයෙන් පිළිගනිමු',
-            style: TextStyle(
-              fontSize: 20,
-              fontStyle: FontStyle.italic,
-              color: Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'சுகாதார அமைச்சில் உங்களை வரவேற்கிறோம்',
-            style: TextStyle(
-              fontSize: 20,
-              fontStyle: FontStyle.italic,
-              color: Colors.black54,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  static Widget _buildOnboardingPage({
-    required String image,
-    required String title,
-    required String description,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Image.asset(image, height: 300),
-          const SizedBox(height: 40),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              color: Colors.black54,
             ),
           ),
         ],
