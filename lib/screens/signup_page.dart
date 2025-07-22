@@ -35,8 +35,7 @@ class _SignupPageState extends State<SignupPage> {
     setState(() => isLoading = true);
 
     try {
-      // This is a placeholder logic for sign-up without Firebase.
-      // Replace this with your own API or database logic.
+      // Simulated sign-up delay
       await Future.delayed(const Duration(seconds: 2));
 
       if (!mounted) return;
@@ -70,7 +69,7 @@ class _SignupPageState extends State<SignupPage> {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/images/login.webp',
+              'assets/images/login.jpg', // ✅ updated background image
               fit: BoxFit.cover,
             ),
           ),
