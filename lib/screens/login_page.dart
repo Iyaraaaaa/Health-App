@@ -55,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
         children: [
           // Background Image
           Image.asset(
-            'assets/images/login.webp',
+            'assets/images/login.jpg',
             fit: BoxFit.cover,
           ),
 

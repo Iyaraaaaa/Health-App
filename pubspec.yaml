@@ -74,6 +74,11 @@ flutter:
   assets:
       - assets/images/landing.jpg
       - assets/images/logo.jpg
+      - assets/images/on_board_1.avif
+      - assets/images/on_board_2.jpg
+      - assets/images/on_board_3.jpg
+      - assets/images/login.jpg
+
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

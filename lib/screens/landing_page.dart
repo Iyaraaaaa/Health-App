@@ -1,9 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'login_page.dart'; // Replace with your actual login page import
+import 'login_page.dart'; // Ensure this is correctly linked
 
 class LandingPage extends StatefulWidget {
-  const LandingPage({super.key, required void Function(Locale locale) onLocaleChange, required Locale locale});
+  final void Function(Locale locale) onLocaleChange;
+  final Locale locale;
+
+  const LandingPage({
+    super.key,
+    required this.onLocaleChange,
+    required this.locale,
+  });
 
   @override
   State<LandingPage> createState() => _LandingPageState();
