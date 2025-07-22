@@ -1,0 +1,36 @@
+import 'package:flutter/material.dart';
+
+class LandingPage extends StatelessWidget {
+  const LandingPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white, // Clean white background
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Image: Your logo.jpg from assets
+            Image.asset(
+              'assets/logo.jpg',
+              width: 150,
+              height: 150,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(height: 20),
+            // Text under the icon
+            const Text(
+              'Health Ministry',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.blueAccent,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
