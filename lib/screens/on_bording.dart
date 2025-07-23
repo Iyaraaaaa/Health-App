@@ -14,18 +14,18 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
   final List<Map<String, String>> pageArr = [
     {
       "img": "assets/images/on_board_1.avif",
-      "title": "Access Quality Healthcare",
-      "subtitle": "Connect with certified doctors and health services near you.",
+      "title": "Health Ministry",
+      "subtitle": "A healthier nation that contributes to its economic, social, mental, and spiritual development.",
     },
     {
       "img": "assets/images/on_board_2.jpg",
-      "title": "Easy Appointment Booking",
-      "subtitle": "Schedule your health visits seamlessly and securely.",
+      "title": "සෞඛ්‍ය අමාත්‍යාංශය",
+      "subtitle": "ආර්ථික, සමාජ, මානසික සහ ආත්මික සංවර්ධනයට දායක වන සෞඛ්‍යයෙන් පිරි නව ජාතියක්.",
     },
     {
       "img": "assets/images/on_board_3.jpg",
-      "title": "Your Health, Our Priority",
-      "subtitle": "Committed to providing reliable and caring health support.",
+      "title": "சுகாதார அமைச்சகம்",
+      "subtitle": "தனது பொருளாதார, சமூக, மனநல மற்றும் ஆன்மிக முன்னேற்றத்திற்கு συμβளிக்கக்கூடிய ஆரோக்கியமான நாடு..",
     },
   ];
 
