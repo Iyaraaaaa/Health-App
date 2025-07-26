@@ -1,9 +1,25 @@
 {
-  "ministryName": "Ministry of Health",
+  "@@locale": "en",
+  "appTitle": "My Health App",
+  "welcome": "Welcome",
   "home": "Home",
+  "affirmation": "Affirmation",
+  "search": "Search",
+  "more": "More",
+  "editProfile": "Edit Profile",
+  "aboutUs": "About Us",
+  "notifications": "Notifications",
+  "logOut": "Log Out",
+  "ministryName": "Ministry of Health",
   "services": "Services",
   "news": "News",
   "emergency": "Emergency",
   "about": "About",
-  "settings": "Settings"
+  "settings": "Settings",
+  "emergencyCalled": "Emergency call made",
+  "selected": "Selected item",
+  "privacy": "Privacy",
+  "changeLanguage": "Change Language",
+  "switchToLightMode": "Switch to Light Mode",
+  "switchToDarkMode": "Switch to Dark Mode"
 }

@@ -17,11 +17,26 @@ class $AssetsImagesGen {
   /// File path: assets/images/landing.jpg
   AssetGenImage get landing => const AssetGenImage('assets/images/landing.jpg');
 
+  /// File path: assets/images/login.jpg
+  AssetGenImage get login => const AssetGenImage('assets/images/login.jpg');
+
   /// File path: assets/images/logo.jpg
   AssetGenImage get logo => const AssetGenImage('assets/images/logo.jpg');
 
+  /// File path: assets/images/on_board_1.avif
+  String get onBoard1 => 'assets/images/on_board_1.avif';
+
+  /// File path: assets/images/on_board_2.jpg
+  AssetGenImage get onBoard2 =>
+      const AssetGenImage('assets/images/on_board_2.jpg');
+
+  /// File path: assets/images/on_board_3.jpg
+  AssetGenImage get onBoard3 =>
+      const AssetGenImage('assets/images/on_board_3.jpg');
+
   /// List of all assets
-  List<AssetGenImage> get values => [landing, logo];
+  List<dynamic> get values =>
+      [landing, login, logo, onBoard1, onBoard2, onBoard3];
 }
 
 class Assets {

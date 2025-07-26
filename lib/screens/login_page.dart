@@ -26,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void loginUser() {
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context, '/home_page');
   }
 
   @override

@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:health_project/l10n/generated/app_localizations.dart';
-import 'screens/home_screen.dart';
+import 'package:health_project/screens/home_page.dart';
+
+void main() {
+  runApp(const MyApp());
+}
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -11,11 +15,18 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  Locale _locale = const Locale('en'); // default to English
+  Locale _locale = const Locale('en'); // default language
+  bool _isDarkMode = false; // default theme
 
   void _changeLanguage(Locale newLocale) {
     setState(() {
       _locale = newLocale;
+    });
+  }
+
+  void _toggleTheme(bool isDark) {
+    setState(() {
+      _isDarkMode = isDark;
     });
   }
 
@@ -27,13 +38,22 @@ class _MyAppState extends State<MyApp> {
       locale: _locale,
       supportedLocales: AppLocalizations.supportedLocales,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
+      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
+        brightness: Brightness.light,
       ),
-      home: HomeScreen(
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        brightness: Brightness.dark,
+      ),
+      home: HomePage(
         onLocaleChange: _changeLanguage,
         locale: _locale,
+        onThemeChanged: _toggleTheme,
+        isDarkMode: _isDarkMode,
       ),
     );
   }

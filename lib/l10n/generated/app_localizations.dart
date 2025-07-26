@@ -100,17 +100,71 @@ abstract class AppLocalizations {
     Locale('ta')
   ];
 
-  /// No description provided for @ministryName.
+  /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'Ministry of Health'**
-  String get ministryName;
+  /// **'My Health App'**
+  String get appTitle;
+
+  /// No description provided for @welcome.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome'**
+  String get welcome;
 
   /// No description provided for @home.
   ///
   /// In en, this message translates to:
   /// **'Home'**
   String get home;
+
+  /// No description provided for @affirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Affirmation'**
+  String get affirmation;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @more.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get more;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// No description provided for @aboutUs.
+  ///
+  /// In en, this message translates to:
+  /// **'About Us'**
+  String get aboutUs;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @logOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Out'**
+  String get logOut;
+
+  /// No description provided for @ministryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Ministry of Health'**
+  String get ministryName;
 
   /// No description provided for @services.
   ///
@@ -141,6 +195,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
+
+  /// No description provided for @emergencyCalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency call made'**
+  String get emergencyCalled;
+
+  /// No description provided for @selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected item'**
+  String get selected;
+
+  /// No description provided for @privacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get privacy;
+
+  /// No description provided for @changeLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Language'**
+  String get changeLanguage;
+
+  /// No description provided for @switchToLightMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Light Mode'**
+  String get switchToLightMode;
+
+  /// No description provided for @switchToDarkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Dark Mode'**
+  String get switchToDarkMode;
 }
 
 class _AppLocalizationsDelegate
