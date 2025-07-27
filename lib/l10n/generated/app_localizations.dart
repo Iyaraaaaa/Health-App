@@ -68,8 +68,8 @@ abstract class AppLocalizations {
 
   final String localeName;
 
-  static AppLocalizations? of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations);
+  static AppLocalizations of(BuildContext context) {
+    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
   }
 
   static const LocalizationsDelegate<AppLocalizations> delegate =
@@ -231,6 +231,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Switch to Dark Mode'**
   String get switchToDarkMode;
+
+  /// No description provided for @ourVision.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Vision'**
+  String get ourVision;
+
+  /// No description provided for @visionText.
+  ///
+  /// In en, this message translates to:
+  /// **'\"A healthier nation that contributes to its economic, social, mental and spiritual development.\"'**
+  String get visionText;
+
+  /// No description provided for @ourMission.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Mission'**
+  String get ourMission;
+
+  /// No description provided for @missionText.
+  ///
+  /// In en, this message translates to:
+  /// **'\"To contribute to the social and economic development of Sri Lanka by achieving the highest attainable health levels through preventive, curative and rehabilitative services of high quality, available and accessible to people of Sri Lanka.\"'**
+  String get missionText;
+
+  /// No description provided for @readMore.
+  ///
+  /// In en, this message translates to:
+  /// **'READ MORE'**
+  String get readMore;
+
+  /// No description provided for @ministryLeadership.
+  ///
+  /// In en, this message translates to:
+  /// **'Ministry Leadership'**
+  String get ministryLeadership;
+
+  /// No description provided for @minister.
+  ///
+  /// In en, this message translates to:
+  /// **'Minister of Health and Mass Media'**
+  String get minister;
+
+  /// No description provided for @deputyMinister.
+  ///
+  /// In en, this message translates to:
+  /// **'Deputy Minister of Health and Mass Media'**
+  String get deputyMinister;
+
+  /// No description provided for @secretary.
+  ///
+  /// In en, this message translates to:
+  /// **'Secretary / Ministry of Health and Mass Media'**
+  String get secretary;
+
+  /// No description provided for @directorGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'Director General of Health Services'**
+  String get directorGeneral;
+
+  /// No description provided for @english.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// No description provided for @sinhala.
+  ///
+  /// In en, this message translates to:
+  /// **'Sinhala'**
+  String get sinhala;
+
+  /// No description provided for @tamil.
+  ///
+  /// In en, this message translates to:
+  /// **'Tamil'**
+  String get tamil;
 }
 
 class _AppLocalizationsDelegate

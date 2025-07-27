@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health_project/l10n/generated/app_localizations.dart';
 
+// Import your other screens
 import 'affirmation.dart';
 import 'privacy.dart';
 import 'search.dart';
@@ -35,25 +37,90 @@ class _HomePageState extends State<HomePage> {
   String _userImage = '';
 
   late List<Widget> _pages;
+  late PageController _pageController;
+  late Timer _timer;
+  int _currentPage = 0;
+
+  // Images and captions for slider
+  final List<String> _sliderImages = [
+    'assets/images/a.jpg', // Public Health
+    'assets/images/b.jpg', // Hospital Base Care
+    'assets/images/c.png', // Your Health & Well Being
+  ];
+  final List<String> _sliderCaptions = [
+    "Public Health",
+    "Hospital Base Care",
+    "Your Health & Well Being",
+  ];
+
+  // Leadership team data
+  final List<Map<String, String>> _leadershipTeam = [
+    {
+      'image': 'assets/images/p1.jpg',
+      'title': 'minister',
+      'name': 'Dr. Nalinda Jayatissa',
+    },
+    {
+      'image': 'assets/images/p2.jpg',
+      'title': 'deputyMinister',
+      'name': 'Dr. Hansaka Vijemuni',
+    },
+    {
+      'image': 'assets/images/p3.jpg',
+      'title': 'secretary',
+      'name': 'Dr. Anil Jayasighe',
+    },
+    {
+      'image': 'assets/images/p4.jpg',
+      'title': 'directorGeneral',
+      'name': 'Dr. Asela Gunawaradena',
+    },
+  ];
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController(initialPage: _currentPage);
+    _loadUserData();
     _pages = [
-      _buildHomePlaceholder("Welcome"), // placeholder text
+      Container(), // Will set in didChangeDependencies
       const AffirmationPage(),
       const SearchPage(),
     ];
-    _loadUserData();
+    _startAutoScroll();
   }
 
-  Widget _buildHomePlaceholder(String text) {
-    return Center(
-      child: Text(
-        '$text, $_userName!',
-        style: const TextStyle(fontSize: 24),
-      ),
-    );
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final loc = AppLocalizations.of(context)!;
+    setState(() {
+      _pages[0] = _buildHomeContent(loc);
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _timer.cancel();
+    super.dispose();
+  }
+
+  void _startAutoScroll() {
+    _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
+      if (_currentPage < _sliderImages.length - 1) {
+        _currentPage++;
+      } else {
+        _currentPage = 0;
+      }
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeIn,
+        );
+      }
+    });
   }
 
   Future<void> _loadUserData() async {
@@ -81,16 +148,254 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Widget _buildHomeContent(AppLocalizations loc) {
+    final bool isDark = widget.isDarkMode;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final cardColor = isDark ? Colors.grey[800]! : Colors.white;
+    final backgroundColor = isDark ? Colors.grey[900]! : Colors.grey[100];
+
+    return Container(
+      color: backgroundColor,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Welcome message
+            Text(
+              '${loc.welcome}, $_userName!',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 20),
+            
+            // Image slider
+            SizedBox(
+              height: 230,
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _sliderImages.length,
+                itemBuilder: (context, index) {
+                  return Stack(
+                    children: [
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          image: DecorationImage(
+                            image: AssetImage(_sliderImages[index]),
+                            fit: BoxFit.cover,
+                            colorFilter: isDark
+                                ? ColorFilter.mode(
+                                    Colors.black.withOpacity(0.5),
+                                    BlendMode.darken)
+                                : null,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 20,
+                        left: 20,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 6, horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? Colors.black54
+                                : Colors.white70,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _sliderCaptions[index],
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+                onPageChanged: (index) {
+                  _currentPage = index;
+                },
+              ),
+            ),
+            const SizedBox(height: 30),
+            
+            // Vision Section
+            Text(
+              loc.ourVision,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Card(
+              color: cardColor,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  loc.visionText,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: textColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            const SizedBox(height: 30),
+            
+            // Leadership Team
+            Text(
+              loc.ministryLeadership,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 10),
+            ..._leadershipTeam.map((leader) => _buildLeaderCard(
+                  context,
+                  leader['image']!,
+                  leader['title']!,
+                  leader['name']!,
+                  cardColor,
+                  textColor,
+                )),
+            const SizedBox(height: 30),
+            
+            // Mission Section
+            Text(
+              loc.ourMission,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Card(
+              color: cardColor,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  loc.missionText,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: textColor,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  // Handle read more action
+                },
+                child: Text(
+                  loc.readMore,
+                  style: TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLeaderCard(
+    BuildContext context,
+    String imagePath,
+    String titleKey,
+    String name,
+    Color cardColor,
+    Color textColor,
+  ) {
+    final loc = AppLocalizations.of(context)!;
+
+    // Map to manually handle dynamic key translation
+    final titleTranslations = {
+      'minister': loc.minister,
+      'deputyMinister': loc.deputyMinister,
+      'secretary': loc.secretary,
+      'directorGeneral': loc.directorGeneral,
+    };
+
+    return Card(
+      color: cardColor,
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                imagePath,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    titleTranslations[titleKey] ?? titleKey,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: textColor.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
 
     final List<String> _titles = [loc.home, loc.affirmation, loc.search];
-    _pages[0] = _buildHomePlaceholder(loc.welcome); // update localized welcome text
+    // Update home page content on every build:
+    _pages[0] = _buildHomeContent(loc);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(_titles[_selectedIndex]),
+        backgroundColor: widget.isDarkMode ? Colors.grey[900] : Colors.blue,
         actions: [
           PopupMenuButton<Locale>(
             icon: const Icon(Icons.language),
@@ -102,37 +407,40 @@ class _HomePageState extends State<HomePage> {
               PopupMenuItem(
                 value: const Locale('en'),
                 child: Row(
-                  children: const [
-                    Icon(Icons.language, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('English'),
+                  children: [
+                    const Icon(Icons.language, color: Colors.red),
+                    const SizedBox(width: 8),
+                    const Text('English'),
                   ],
                 ),
               ),
               PopupMenuItem(
                 value: const Locale('si'),
                 child: Row(
-                  children: const [
-                    Icon(Icons.language, color: Colors.green),
-                    SizedBox(width: 8),
-                    Text('සිංහල'),
+                  children: [
+                    const Icon(Icons.language, color: Colors.green),
+                    const SizedBox(width: 8),
+                    const Text('සිංහල'),
                   ],
                 ),
               ),
               PopupMenuItem(
                 value: const Locale('ta'),
                 child: Row(
-                  children: const [
-                    Icon(Icons.language, color: Colors.blue),
-                    SizedBox(width: 8),
-                    Text('தமிழ்'),
+                  children: [
+                    const Icon(Icons.language, color: Colors.blue),
+                    const SizedBox(width: 8),
+                    const Text('தமிழ்'),
                   ],
                 ),
               ),
             ],
           ),
           IconButton(
-            icon: Icon(widget.isDarkMode ? Icons.dark_mode : Icons.light_mode),
+            icon: Icon(
+              widget.isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
+              color: widget.isDarkMode ? Colors.amber : const Color.fromARGB(255, 247, 249, 251),
+            ),
             onPressed: () {
               widget.onThemeChanged(!widget.isDarkMode);
             },
@@ -145,16 +453,19 @@ class _HomePageState extends State<HomePage> {
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
+        backgroundColor: widget.isDarkMode ? Colors.grey[900] : Colors.white,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: widget.isDarkMode ? Colors.white70 : Colors.grey,
         items: [
           BottomNavigationBarItem(icon: const Icon(Icons.home), label: loc.home),
           BottomNavigationBarItem(
-              icon: const Icon(Icons.local_hospital), label: loc.affirmation),
+              icon: const Icon(Icons.local_hospital), 
+              label: loc.affirmation),
           BottomNavigationBarItem(
-              icon: const Icon(Icons.search), label: loc.search),
+              icon: const Icon(Icons.search), 
+              label: loc.search),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.purple,
-        unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
       ),
       drawer: _buildDrawer(loc),
@@ -162,6 +473,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildDrawer(AppLocalizations loc) {
+    final bool isDark = widget.isDarkMode;
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -178,7 +490,9 @@ class _HomePageState extends State<HomePage> {
                     debugPrint('Failed to load image: $exception');
                   },
                 ),
-                decoration: const BoxDecoration(color: Colors.blue),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.grey[850] : Colors.blue,
+                ),
               ),
               Positioned(
                 bottom: 16,
@@ -210,9 +524,9 @@ class _HomePageState extends State<HomePage> {
               Colors.purple, NotificationsPage()),
           _buildDrawerItem(Icons.privacy_tip, loc.privacy, Colors.green,
               PrivacyPage()),
-          _buildDrawerItem(
-              Icons.info, loc.aboutUs, Colors.teal, AboutUsPage()),
-          _buildDrawerItem(Icons.logout, loc.logOut, Colors.amber,
+          _buildDrawerItem(Icons.info, loc.aboutUs, Colors.teal, AboutUsPage()),
+          _buildDrawerItem(Icons.logout, loc.logOut,
+              isDark ? Colors.deepPurple : Colors.amber.shade100,
               const LoginPage(),
               isLogout: true),
         ],
@@ -221,8 +535,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildDrawerItem(
-      IconData icon, String title, Color iconColor, Widget page,
-      {bool isLogout = false}) {
+    IconData icon,
+    String title,
+    Color iconColor,
+    Widget page, {
+    bool isLogout = false,
+  }) {
     return ListTile(
       leading: Icon(icon, color: iconColor),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),

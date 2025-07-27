@@ -32,18 +32,26 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Remove Scaffold background color to allow Container's gradient to show
       backgroundColor: Colors.transparent,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF008080),
-              Color(0xFF4F86F7),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+        decoration: BoxDecoration(
+          gradient: isDarkMode
+              ? const LinearGradient(
+                  colors: [
+                    Color(0xFF121212),
+                    Color(0xFF424242),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : const LinearGradient(
+                  colors: [
+                    Color(0xFF008080),
+                    Color(0xFF4F86F7),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
         ),
         width: double.infinity,
         height: double.infinity,
@@ -55,8 +63,8 @@ class _LoginPageState extends State<LoginPage> {
               right: 20,
               child: IconButton(
                 icon: Icon(
-                  isDarkMode ? Icons.wb_sunny : Icons.nightlight_round,
-                  color: isDarkMode ? Colors.yellow : Colors.black,
+                  isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
+                  color: isDarkMode ? Colors.amber : Colors.white,
                 ),
                 onPressed: () {
                   setState(() {

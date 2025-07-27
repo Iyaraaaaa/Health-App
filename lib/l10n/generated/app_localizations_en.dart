@@ -73,4 +73,45 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get switchToDarkMode => 'Switch to Dark Mode';
+
+  @override
+  String get ourVision => 'Our Vision';
+
+  @override
+  String get visionText =>
+      '\"A healthier nation that contributes to its economic, social, mental and spiritual development.\"';
+
+  @override
+  String get ourMission => 'Our Mission';
+
+  @override
+  String get missionText =>
+      '\"To contribute to the social and economic development of Sri Lanka by achieving the highest attainable health levels through preventive, curative and rehabilitative services of high quality, available and accessible to people of Sri Lanka.\"';
+
+  @override
+  String get readMore => 'READ MORE';
+
+  @override
+  String get ministryLeadership => 'Ministry Leadership';
+
+  @override
+  String get minister => 'Minister of Health and Mass Media';
+
+  @override
+  String get deputyMinister => 'Deputy Minister of Health and Mass Media';
+
+  @override
+  String get secretary => 'Secretary / Ministry of Health and Mass Media';
+
+  @override
+  String get directorGeneral => 'Director General of Health Services';
+
+  @override
+  String get english => 'English';
+
+  @override
+  String get sinhala => 'Sinhala';
+
+  @override
+  String get tamil => 'Tamil';
 }

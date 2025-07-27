@@ -23,7 +23,7 @@ class _SignupPageState extends State<SignupPage> {
   bool isConfirmPasswordVisible = false;
   bool isDarkMode = false;
 
-  File? _pickedImage; // store picked image file
+  File? _pickedImage;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -57,15 +57,24 @@ class _SignupPageState extends State<SignupPage> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF008080),
-              Color(0xFF4F86F7),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+        decoration: BoxDecoration(
+          gradient: isDarkMode
+              ? const LinearGradient(
+                  colors: [
+                    Color(0xFF121212),
+                    Color(0xFF424242),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : const LinearGradient(
+                  colors: [
+                    Color(0xFF008080),
+                    Color(0xFF4F86F7),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
         ),
         width: double.infinity,
         height: double.infinity,
@@ -77,8 +86,8 @@ class _SignupPageState extends State<SignupPage> {
               right: 20,
               child: IconButton(
                 icon: Icon(
-                  isDarkMode ? Icons.wb_sunny : Icons.nightlight_round,
-                  color: isDarkMode ? Colors.yellow : Colors.black,
+                  isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
+                  color: isDarkMode ? Colors.amber : Colors.white,
                 ),
                 onPressed: () => setState(() => isDarkMode = !isDarkMode),
               ),
@@ -107,7 +116,9 @@ class _SignupPageState extends State<SignupPage> {
                             onTap: _pickImage,
                             child: CircleAvatar(
                               radius: 50,
-                              backgroundColor: Colors.grey[300],
+                              backgroundColor: isDarkMode
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300],
                               backgroundImage: _pickedImage != null
                                   ? FileImage(_pickedImage!)
                                   : const AssetImage('assets/images/empty.jpg')
@@ -138,8 +149,9 @@ class _SignupPageState extends State<SignupPage> {
                                       ? Colors.white70
                                       : Colors.black87),
                               filled: true,
-                              fillColor:
-                                  isDarkMode ? Colors.grey[850] : Colors.grey[100],
+                              fillColor: isDarkMode
+                                  ? Colors.grey[850]
+                                  : Colors.grey[100],
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8)),
                             ),
@@ -159,8 +171,9 @@ class _SignupPageState extends State<SignupPage> {
                                       ? Colors.white70
                                       : Colors.black87),
                               filled: true,
-                              fillColor:
-                                  isDarkMode ? Colors.grey[850] : Colors.grey[100],
+                              fillColor: isDarkMode
+                                  ? Colors.grey[850]
+                                  : Colors.grey[100],
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8)),
                               suffixIcon: IconButton(
@@ -168,8 +181,9 @@ class _SignupPageState extends State<SignupPage> {
                                   isPasswordVisible
                                       ? Icons.visibility
                                       : Icons.visibility_off,
-                                  color:
-                                      isDarkMode ? Colors.white70 : Colors.black45,
+                                  color: isDarkMode
+                                      ? Colors.white70
+                                      : Colors.black45,
                                 ),
                                 onPressed: () => setState(
                                     () => isPasswordVisible = !isPasswordVisible),
@@ -191,8 +205,9 @@ class _SignupPageState extends State<SignupPage> {
                                       ? Colors.white70
                                       : Colors.black87),
                               filled: true,
-                              fillColor:
-                                  isDarkMode ? Colors.grey[850] : Colors.grey[100],
+                              fillColor: isDarkMode
+                                  ? Colors.grey[850]
+                                  : Colors.grey[100],
                               border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8)),
                               suffixIcon: IconButton(
@@ -200,8 +215,9 @@ class _SignupPageState extends State<SignupPage> {
                                   isConfirmPasswordVisible
                                       ? Icons.visibility
                                       : Icons.visibility_off,
-                                  color:
-                                      isDarkMode ? Colors.white70 : Colors.black45,
+                                  color: isDarkMode
+                                      ? Colors.white70
+                                      : Colors.black45,
                                 ),
                                 onPressed: () => setState(() =>
                                     isConfirmPasswordVisible =

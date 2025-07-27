@@ -21,5 +21,18 @@
   "privacy": "Privacy",
   "changeLanguage": "Change Language",
   "switchToLightMode": "Switch to Light Mode",
-  "switchToDarkMode": "Switch to Dark Mode"
+  "switchToDarkMode": "Switch to Dark Mode",
+  "ourVision": "Our Vision",
+  "visionText": "\"A healthier nation that contributes to its economic, social, mental and spiritual development.\"",
+  "ourMission": "Our Mission",
+  "missionText": "\"To contribute to the social and economic development of Sri Lanka by achieving the highest attainable health levels through preventive, curative and rehabilitative services of high quality, available and accessible to people of Sri Lanka.\"",
+  "readMore": "READ MORE",
+  "ministryLeadership": "Ministry Leadership",
+  "minister": "Minister of Health and Mass Media",
+  "deputyMinister": "Deputy Minister of Health and Mass Media",
+  "secretary": "Secretary / Ministry of Health and Mass Media",
+  "directorGeneral": "Director General of Health Services",
+  "english": "English",
+  "sinhala": "Sinhala",
+  "tamil": "Tamil"
 }
