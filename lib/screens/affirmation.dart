@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:health_project/l10n/generated/app_localizations.dart';
 
 class AffirmationPage extends StatelessWidget {
   const AffirmationPage({super.key});

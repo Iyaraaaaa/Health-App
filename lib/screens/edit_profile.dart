@@ -2,17 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// Mock Database Helper for demonstration
-class DatabaseHelper {
-  Future<Map<String, dynamic>> getProfileByEmail(String email) async {
-    return {'name': 'John Doe', 'email': email, 'password': '123456'};
-  }
-
-  Future<void> insertProfile(Map<String, dynamic> profileData) async {
-    print('Profile data saved: $profileData');
-  }
-}
+import 'package:health_project/l10n/generated/app_localizations.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String userName;
@@ -33,8 +23,6 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
-  final DatabaseHelper _dbHelper = DatabaseHelper();
-
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -49,12 +37,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _loadProfile() async {
+    // Load profile data from a mock database
     setState(() => _isLoading = true);
     try {
-      final profile = await _dbHelper.getProfileByEmail(widget.userEmail);
-      nameController.text = profile['name'] ?? widget.userName;
-      emailController.text = profile['email'] ?? widget.userEmail;
-      passwordController.text = profile['password'] ?? '';
+      nameController.text = widget.userName;
+      emailController.text = widget.userEmail;
     } catch (e) {
       _showErrorSnackbar('Failed to load profile: ${e.toString()}');
     } finally {
@@ -63,48 +50,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _pickImage() async {
-    try {
-      final pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
+    final pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      maxHeight: 800,
+      imageQuality: 85,
+    );
 
-      if (pickedFile != null) {
-        final file = File(pickedFile.path);
-        final fileSize = await file.length() / 1024 / 1024;
-        if (fileSize > 5) {
-          _showErrorSnackbar('Image size should be less than 5MB');
-          return;
-        }
-        setState(() => _image = file);
-      }
-    } catch (e) {
-      _showErrorSnackbar('Failed to pick image: ${e.toString()}');
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      setState(() => _image = file);
     }
   }
 
   void _showErrorSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
   }
 
   void _showSuccessSnackbar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.green));
   }
 
   Future<void> _saveChanges() async {
     if (nameController.text.isEmpty) {
       _showErrorSnackbar('Name is required');
-      return;
-    }
-
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text)) {
-      _showErrorSnackbar('Please enter a valid email');
       return;
     }
 
@@ -123,28 +92,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'lastUpdated': DateTime.now().toIso8601String(),
       };
 
-      await _dbHelper.insertProfile(profileData);
-
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userName', nameController.text);
       await prefs.setString('userEmail', emailController.text);
       await prefs.setString('userImage', imagePath ?? '');
 
       _showSuccessSnackbar('Profile updated successfully!');
-      if (mounted) Navigator.pop(context, true);
+      Navigator.pop(context, true);
     } catch (e) {
       _showErrorSnackbar('Failed to save changes: ${e.toString()}');
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: Text(loc.editProfile),
         centerTitle: true,
         backgroundColor: Colors.blueAccent,
         elevation: 0,
@@ -157,9 +125,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 children: [
                   _buildProfileImage(),
                   const SizedBox(height: 25),
-                  _buildFormFields(),
+                  _buildFormFields(loc),
                   const SizedBox(height: 30),
-                  _buildSaveButton(),
+                  _buildSaveButton(loc),
                 ],
               ),
             ),
@@ -200,16 +168,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return const AssetImage('assets/images/default_profile.png');
   }
 
-  Widget _buildFormFields() {
+  Widget _buildFormFields(AppLocalizations loc) {
     return Column(
       children: [
-        _customTextField(nameController, 'Full Name', Icons.person),
+        _customTextField(nameController, loc.fullName, Icons.person),
         const SizedBox(height: 15),
-        _customTextField(emailController, 'Email', Icons.email),
+        _customTextField(emailController, loc.email, Icons.email),
         const SizedBox(height: 15),
         _customTextField(
           passwordController,
-          'Password',
+          loc.password,
           Icons.lock,
           obscureText: !_isPasswordVisible,
           suffixIcon: IconButton(
@@ -246,7 +214,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildSaveButton() {
+  Widget _buildSaveButton(AppLocalizations loc) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -258,9 +226,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
           backgroundColor: Colors.blueAccent,
         ),
-        child: const Text(
-          'Save Changes',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        child: Text(
+          loc.saveChanges,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );

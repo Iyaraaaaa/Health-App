@@ -16,6 +16,7 @@ import 'package:health_project/screens/welcome.dart';
 import 'package:health_project/screens/affirmation.dart';
 import 'package:health_project/screens/search.dart';
 import 'package:health_project/screens/privacy.dart';
+import 'package:health_project/screens/contact_us.dart';
 
 void main() {
   runApp(const MyApp());
@@ -83,7 +84,10 @@ class _MyAppState extends State<MyApp> {
         '/affirmation': (context) => const AffirmationPage(),
         '/search': (context) => const SearchPage(),
         '/privacy': (context) => PrivacyPage(),
+        '/contact_us': (context) => ContactUs()
       },
     );
   }
+  
+  ContactUs() {}
 }

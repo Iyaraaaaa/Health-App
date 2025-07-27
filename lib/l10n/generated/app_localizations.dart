@@ -241,7 +241,7 @@ abstract class AppLocalizations {
   /// No description provided for @visionText.
   ///
   /// In en, this message translates to:
-  /// **'\"A healthier nation that contributes to its economic, social, mental and spiritual development.\"'**
+  /// **'We pledge to keep people healthy, to offer high-quality care when it is required, and to safeguard the healthcare system for future generations.'**
   String get visionText;
 
   /// No description provided for @ourMission.
@@ -253,7 +253,7 @@ abstract class AppLocalizations {
   /// No description provided for @missionText.
   ///
   /// In en, this message translates to:
-  /// **'\"To contribute to the social and economic development of Sri Lanka by achieving the highest attainable health levels through preventive, curative and rehabilitative services of high quality, available and accessible to people of Sri Lanka.\"'**
+  /// **'To contribute to the social and economic development of Sri Lanka by achieving the highest attainable health levels through preventive, curative and rehabilitative services of high quality, available and accessible to people of Sri Lanka.'**
   String get missionText;
 
   /// No description provided for @readMore.
@@ -271,19 +271,19 @@ abstract class AppLocalizations {
   /// No description provided for @minister.
   ///
   /// In en, this message translates to:
-  /// **'Minister of Health and Mass Media'**
+  /// **'Minister of Health'**
   String get minister;
 
   /// No description provided for @deputyMinister.
   ///
   /// In en, this message translates to:
-  /// **'Deputy Minister of Health and Mass Media'**
+  /// **'Deputy Minister of Health'**
   String get deputyMinister;
 
   /// No description provided for @secretary.
   ///
   /// In en, this message translates to:
-  /// **'Secretary / Ministry of Health and Mass Media'**
+  /// **'Secretary of Health'**
   String get secretary;
 
   /// No description provided for @directorGeneral.
@@ -309,6 +309,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tamil'**
   String get tamil;
+
+  /// No description provided for @contactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Us'**
+  String get contactUs;
+
+  /// No description provided for @homeContactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Home / Contact Us'**
+  String get homeContactUs;
+
+  /// No description provided for @contactDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Details'**
+  String get contactDetails;
+
+  /// No description provided for @generalInquiries.
+  ///
+  /// In en, this message translates to:
+  /// **'General Inquiries'**
+  String get generalInquiries;
+
+  /// No description provided for @contactText.
+  ///
+  /// In en, this message translates to:
+  /// **'Thanks for your interest in reaching the Ministry of Health, Sri Lanka. Below is the contact information for frequently requested departments. Please use the website search feature located below to find an email address or phone number.'**
+  String get contactText;
+
+  /// No description provided for @address.
+  ///
+  /// In en, this message translates to:
+  /// **'Suwasiripaya, No. 385, Rev. Baddegama Wimalawansa Thero Mawatha, Colombo 10, Sri Lanka.'**
+  String get address;
+
+  /// No description provided for @phone.
+  ///
+  /// In en, this message translates to:
+  /// **'(94) 112 694033     (94) 112 693493\n(94) 112 675011     (94) 112 675280\n(94) 112 675449     (94) 112 669192'**
+  String get phone;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'info(at)health.gov.lk'**
+  String get email;
+
+  /// No description provided for @locationOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Location on Map'**
+  String get locationOnMap;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// No description provided for @appointmentReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Appointment Reminder'**
+  String get appointmentReminder;
+
+  /// No description provided for @appointmentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You have an appointment with Dr. Smith at 10:30 AM.'**
+  String get appointmentMessage;
+
+  /// No description provided for @paymentConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Confirmation'**
+  String get paymentConfirmation;
+
+  /// No description provided for @paymentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your payment for consultation has been received.'**
+  String get paymentMessage;
+
+  /// No description provided for @newDoctorAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'New Doctor Added'**
+  String get newDoctorAdded;
+
+  /// No description provided for @doctorMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Dr. Jane Doe has been added to your favorites.'**
+  String get doctorMessage;
+
+  /// No description provided for @timeAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} ago'**
+  String timeAgo(Object time);
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// No description provided for @introduction.
+  ///
+  /// In en, this message translates to:
+  /// **'1. Introduction'**
+  String get introduction;
+
+  /// No description provided for @introductionContent.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the introduction of the privacy policy.\n\nWe value your privacy and explain how your data is collected and used.'**
+  String get introductionContent;
+
+  /// No description provided for @personalData.
+  ///
+  /// In en, this message translates to:
+  /// **'2. Personal Data We Collect'**
+  String get personalData;
+
+  /// No description provided for @personalDataContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Details about the data we collect, including your name, email, and usage data.\n\nThis data helps us improve our services and provide a better user experience.'**
+  String get personalDataContent;
+
+  /// No description provided for @cookiePolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'3. Cookie Policy'**
+  String get cookiePolicy;
+
+  /// No description provided for @cookiePolicyContent.
+  ///
+  /// In en, this message translates to:
+  /// **'What are cookies?\n\nA cookie is a small file stored on your device. We use cookies to enhance user experience but we respect your privacy and provide an option to disable them.'**
+  String get cookiePolicyContent;
+
+  /// No description provided for @welcomeTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome To'**
+  String get welcomeTo;
+
+  /// No description provided for @ministryOfHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Ministry of Health Sri Lanka'**
+  String get ministryOfHealth;
+
+  /// No description provided for @preHistoricMedicine.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-Historic Medicine in Ceylon'**
+  String get preHistoricMedicine;
+
+  /// No description provided for @medicineUnderSriLankanKings.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine under Sri Lankan kings'**
+  String get medicineUnderSriLankanKings;
+
+  /// No description provided for @locLookup.
+  ///
+  /// In en, this message translates to:
+  /// **'Look up regional variant'**
+  String get locLookup;
 }
 
 class _AppLocalizationsDelegate

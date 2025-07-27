@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:health_project/l10n/generated/app_localizations.dart';
 
 class NotificationsPage extends StatefulWidget {
+  const NotificationsPage({Key? key}) : super(key: key);
+
   @override
   _NotificationsPageState createState() => _NotificationsPageState();
 }
@@ -9,49 +12,68 @@ class _NotificationsPageState extends State<NotificationsPage> {
   // Sample notification list
   final List<Map<String, String>> _notifications = [
     {
-      "title": "Appointment Reminder",
-      "message": "You have an appointment with Dr. Smith at 10:30 AM.",
-      "time": "10 min ago"
+      "title": "appointmentReminder",
+      "message": "appointmentMessage",
+      "time": "10 minutes"
     },
     {
-      "title": "Payment Confirmation",
-      "message": "Your payment for consultation has been received.",
-      "time": "1 hour ago"
+      "title": "paymentConfirmation",
+      "message": "paymentMessage",
+      "time": "1 hour"
     },
     {
-      "title": "New Doctor Added",
-      "message": "Dr. Jane Doe has been added to your favorites.",
-      "time": "3 hours ago"
+      "title": "newDoctorAdded",
+      "message": "doctorMessage",
+      "time": "3 hours"
     },
   ];
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+
+    // Map of localization key to actual localized string
+    final Map<String, String> localizedTitles = {
+      "appointmentReminder": loc.appointmentReminder,
+      "paymentConfirmation": loc.paymentConfirmation,
+      "newDoctorAdded": loc.newDoctorAdded,
+    };
+
+    final Map<String, String> localizedMessages = {
+      "appointmentMessage": loc.appointmentMessage,
+      "paymentMessage": loc.paymentMessage,
+      "doctorMessage": loc.doctorMessage,
+    };
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notifications'),
+        title: Text(loc.notifications),
         backgroundColor: Colors.blue,
       ),
       body: ListView.builder(
         itemCount: _notifications.length,
         itemBuilder: (context, index) {
           final notification = _notifications[index];
+          final titleKey = notification["title"]!;
+          final messageKey = notification["message"]!;
+          final time = notification["time"]!;
+
           return Card(
-            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             elevation: 3,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
             child: ListTile(
-              leading: Icon(Icons.notifications, color: Colors.blue),
+              leading: const Icon(Icons.notifications, color: Colors.blue),
               title: Text(
-                notification["title"]!,
-                style: TextStyle(fontWeight: FontWeight.bold),
+                localizedTitles[titleKey] ?? titleKey,
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
-              subtitle: Text(notification["message"]!),
+              subtitle: Text(localizedMessages[messageKey] ?? messageKey),
               trailing: Text(
-                notification["time"]!,
-                style: TextStyle(color: Colors.grey),
+                loc.timeAgo(time),
+                style: const TextStyle(color: Colors.grey),
               ),
             ),
           );

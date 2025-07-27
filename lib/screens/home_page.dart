@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health_project/l10n/generated/app_localizations.dart';
 
-// Import your other screens
+// Import other screens
 import 'affirmation.dart';
 import 'privacy.dart';
 import 'search.dart';
@@ -11,6 +11,7 @@ import 'edit_profile.dart';
 import 'notifications.dart';
 import 'about_us.dart';
 import 'login_page.dart';
+import 'contact_us.dart'; // Import the Contact Us page
 
 class HomePage extends StatefulWidget {
   final Function(bool) onThemeChanged;
@@ -525,6 +526,7 @@ class _HomePageState extends State<HomePage> {
           _buildDrawerItem(Icons.privacy_tip, loc.privacy, Colors.green,
               PrivacyPage()),
           _buildDrawerItem(Icons.info, loc.aboutUs, Colors.teal, AboutUsPage()),
+          _buildDrawerItem(Icons.phone, loc.contactUs, Colors.blue, const ContactUsPage()), // Added Contact Us
           _buildDrawerItem(Icons.logout, loc.logOut,
               isDark ? Colors.deepPurple : Colors.amber.shade100,
               const LoginPage(),
