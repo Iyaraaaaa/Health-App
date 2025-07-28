@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart'; // Add url_launcher for phone call functionality
 import 'package:health_project/l10n/generated/app_localizations.dart';
 
 class ContactUsPage extends StatelessWidget {
@@ -91,15 +92,18 @@ class ContactUsPage extends StatelessWidget {
             // Phone
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 Icon(Icons.phone, color: Colors.green),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    "(94) 112 694033     (94) 112 693493\n"
-                    "(94) 112 675011     (94) 112 675280\n"
-                    "(94) 112 675449     (94) 112 669192",
-                    style: TextStyle(fontSize: 15, height: 1.6),
+                  child: GestureDetector(
+                    onTap: () => _makePhoneCall(),
+                    child: Text(
+                      "(94) 112 694033     (94) 112 693493\n"
+                      "(94) 112 675011     (94) 112 675280\n"
+                      "(94) 112 675449     (94) 112 669192",
+                      style: TextStyle(fontSize: 15, height: 1.6),
+                    ),
                   ),
                 ),
               ],
@@ -108,9 +112,9 @@ class ContactUsPage extends StatelessWidget {
 
             // Email
             Row(
-              children: const [
+              children: [
                 Icon(Icons.email, color: Colors.orange),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     "info(at)health.gov.lk",
@@ -170,5 +174,14 @@ class ContactUsPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _makePhoneCall() async {
+    final url = Uri(scheme: 'tel', path: '0112678044'); // Change this to desired number
+    if (await canLaunch(url.toString())) {
+      await launch(url.toString());
+    } else {
+      print('Could not launch phone dialer');
+    }
   }
 }

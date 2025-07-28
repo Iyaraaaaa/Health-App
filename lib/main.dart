@@ -13,10 +13,28 @@ import 'package:health_project/screens/on_bording.dart';
 import 'package:health_project/screens/signup_page.dart';
 import 'package:health_project/screens/splash_screen.dart';
 import 'package:health_project/screens/welcome.dart';
-import 'package:health_project/screens/affirmation.dart' hide EditProfilePage;
+import 'package:health_project/screens/affirmation.dart';
 import 'package:health_project/screens/search.dart';
 import 'package:health_project/screens/privacy.dart';
 import 'package:health_project/screens/contact_us.dart';
+
+class RouteNames {
+  static const splash = '/splash';
+  static const welcome = '/welcome';
+  static const onBoarding = '/on_boarding';
+  static const login = '/login_page';
+  static const signup = '/signup';
+  static const forgotPassword = '/forgot_password';
+  static const home = '/home_page';
+  static const editProfile = '/edit_profile';
+  static const aboutUs = '/about_us';
+  static const notifications = '/notifications';
+  static const logout = '/logout';
+  static const affirmation = '/affirmation';
+  static const search = '/search';
+  static const privacy = '/privacy';
+  static const contactUs = '/contact_us';
+}
 
 void main() {
   runApp(const MyApp());
@@ -59,35 +77,34 @@ class _MyAppState extends State<MyApp> {
         Locale('si'),
         Locale('ta'),
       ],
-      initialRoute: '/splash',
+      initialRoute: RouteNames.splash,
       routes: {
-        '/splash': (context) => const SplashScreen(),
-        '/welcome': (context) => const WelcomePage(),
-        '/on_boarding': (context) => const OnBoardingScreen(),
-        '/login_page': (context) => const LoginPage(),
-        '/signup': (context) => const SignupPage(),
-        '/forgot_password': (context) => const ForgetPage(),
-        '/home_page': (context) => HomePage(
+        RouteNames.splash: (context) => const SplashScreen(),
+        RouteNames.welcome: (context) => const WelcomePage(),
+        RouteNames.onBoarding: (context) => const OnBoardingScreen(),
+        RouteNames.login: (context) => const LoginPage(),
+        RouteNames.signup: (context) => const SignupPage(),
+        RouteNames.forgotPassword: (context) => const ForgetPage(),
+        RouteNames.home: (context) => HomePage(
               onLocaleChange: setLocale,
               locale: _locale,
               onThemeChanged: toggleTheme,
               isDarkMode: _isDarkMode,
             ),
-        '/edit_profile': (context) => const EditProfilePage(
+        RouteNames.editProfile: (context) => const EditProfilePage(
               userName: '',
               userEmail: '',
               userImage: '',
             ),
-        '/about_us': (context) => AboutUsPage(),
-        '/notifications': (context) => NotificationsPage(),
-        '/logout': (context) => const LogoutPage(),
-        '/affirmation': (context) => const AffirmationPage(),
-        '/search': (context) => const SearchPage(),
-        '/privacy': (context) => PrivacyPage(),
-        '/contact_us': (context) => ContactUs()
+        RouteNames.aboutUs: (context) => AboutUsPage(),
+        RouteNames.notifications: (context) => NotificationsPage(),
+        RouteNames.logout: (context) => const LogoutPage(),
+        RouteNames.affirmation: (context) => AffirmationPage(), // Ensure it's being used as a Widget here
+        RouteNames.search: (context) => const SearchPage(),
+        RouteNames.privacy: (context) => PrivacyPage(),
+        RouteNames.contactUs: (context) => const ContactUsPage(),
       },
     );
   }
-  
-  ContactUs() {}
+
 }

@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health_project/l10n/generated/app_localizations.dart';
 
-// Import other screens
+// Import your other screens
 import 'affirmation.dart';
 import 'privacy.dart';
 import 'search.dart';
-import 'edit_profile.dart' hide EditProfilePage;
+import 'edit_profile.dart';
 import 'notifications.dart';
 import 'about_us.dart';
 import 'login_page.dart';
-import 'contact_us.dart'; // Import the Contact Us page
+import 'contact_us.dart'; // Import the new Contact Us page
 
 class HomePage extends StatefulWidget {
   final Function(bool) onThemeChanged;
@@ -79,7 +79,17 @@ class _HomePageState extends State<HomePage> {
   ];
 
   @override
-  
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _currentPage);
+    _loadUserData();
+    _pages = [
+      Container(), // Will set in didChangeDependencies
+      const AffirmationPage(),
+      const SearchPage(),
+    ];
+    _startAutoScroll();
+  }
 
   @override
   void didChangeDependencies() {
@@ -142,8 +152,8 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHomeContent(AppLocalizations loc) {
     final bool isDark = widget.isDarkMode;
     final textColor = isDark ? Colors.white : Colors.black87;
-    final cardColor = isDark ? Colors.grey[800]! : Colors.white;
-    final backgroundColor = isDark ? Colors.grey[900]! : Colors.grey[100];
+    final cardColor = isDark ? Colors.grey[850]! : Colors.white;
+    final backgroundColor = isDark ? const Color.fromARGB(255, 53, 51, 51) : Colors.grey[100];
 
     return Container(
       color: backgroundColor,
@@ -181,7 +191,7 @@ class _HomePageState extends State<HomePage> {
                             fit: BoxFit.cover,
                             colorFilter: isDark
                                 ? ColorFilter.mode(
-                                    Colors.black.withOpacity(0.5),
+                                    Colors.black.withOpacity(0.7),
                                     BlendMode.darken)
                                 : null,
                           ),
@@ -516,7 +526,7 @@ class _HomePageState extends State<HomePage> {
           _buildDrawerItem(Icons.privacy_tip, loc.privacy, Colors.green,
               PrivacyPage()),
           _buildDrawerItem(Icons.info, loc.aboutUs, Colors.teal, AboutUsPage()),
-          _buildDrawerItem(Icons.phone, loc.contactUs, Colors.blue, const ContactUsPage()), // Added Contact Us
+          _buildDrawerItem(Icons.phone, loc.contactUs, Colors.blue, const ContactUsPage()),
           _buildDrawerItem(Icons.logout, loc.logOut,
               isDark ? Colors.deepPurple : Colors.amber.shade100,
               const LoginPage(),
@@ -552,8 +562,4 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
-}
-
-class AffirmationPage {
-  const AffirmationPage();
 }
