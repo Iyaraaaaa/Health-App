@@ -50,34 +50,59 @@ class _NotificationsPageState extends State<NotificationsPage> {
         title: Text(loc.notifications),
         backgroundColor: Colors.blue,
       ),
-      body: ListView.builder(
-        itemCount: _notifications.length,
-        itemBuilder: (context, index) {
-          final notification = _notifications[index];
-          final titleKey = notification["title"]!;
-          final messageKey = notification["message"]!;
-          final time = notification["time"]!;
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Breadcrumb Section (Home / Notifications)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Home / Notifications",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.blueGrey,
+                  ),
+                ),
+              ),
+            ),
+            // Notification List
+            Expanded(
+              child: ListView.builder(
+                itemCount: _notifications.length,
+                itemBuilder: (context, index) {
+                  final notification = _notifications[index];
+                  final titleKey = notification["title"]!;
+                  final messageKey = notification["message"]!;
+                  final time = notification["time"]!;
 
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: ListTile(
-              leading: const Icon(Icons.notifications, color: Colors.blue),
-              title: Text(
-                localizedTitles[titleKey] ?? titleKey,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: ListTile(
+                      leading: const Icon(Icons.notifications, color: Colors.blue),
+                      title: Text(
+                        localizedTitles[titleKey] ?? titleKey,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(localizedMessages[messageKey] ?? messageKey),
+                      trailing: Text(
+                        loc.timeAgo(time),
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  );
+                },
               ),
-              subtitle: Text(localizedMessages[messageKey] ?? messageKey),
-              trailing: Text(
-                loc.timeAgo(time),
-                style: const TextStyle(color: Colors.grey),
-              ),
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

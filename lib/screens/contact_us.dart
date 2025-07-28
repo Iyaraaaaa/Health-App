@@ -11,12 +11,17 @@ class ContactUsPage extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!; // Get current localization strings
 
+    // Set dynamic color for the AppBar based on the theme
+    Color appBarColor = isDark ? Colors.black : Colors.blue;
+    Color textColor = isDark ? Colors.white : Colors.black;
+    Color iconColor = isDark ? Colors.white : Colors.blue;
+
     return Scaffold(
       backgroundColor: isDark ? Colors.grey[900] : Colors.white,
       appBar: AppBar(
         title: Text(loc.contactUs), // Use localized string
         centerTitle: true,
-        backgroundColor: isDark ? Colors.black : Colors.blue[700],
+        backgroundColor: appBarColor, // Dynamic background color based on theme
         foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
@@ -49,7 +54,7 @@ class ContactUsPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
+                color: textColor, // Dynamically adjust color
               ),
             ),
             const SizedBox(height: 12),
@@ -67,7 +72,7 @@ class ContactUsPage extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.location_on, color: Colors.red),
+                Icon(Icons.location_on, color: Colors.red),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -75,7 +80,7 @@ class ContactUsPage extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: textColor, // Dynamically adjust color
                     ),
                   ),
                 ),
@@ -122,7 +127,7 @@ class ContactUsPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
+                color: textColor, // Dynamically adjust color
               ),
             ),
             const SizedBox(height: 10),

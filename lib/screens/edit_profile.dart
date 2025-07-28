@@ -37,7 +37,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _loadProfile() async {
-    // Load profile data from a mock database
     setState(() => _isLoading = true);
     try {
       nameController.text = widget.userName;
@@ -109,12 +108,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
-
+    
     return Scaffold(
       appBar: AppBar(
         title: Text(loc.editProfile),
         centerTitle: true,
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Theme.of(context).primaryColor,
         elevation: 0,
       ),
       body: _isLoading

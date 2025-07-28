@@ -7,7 +7,7 @@ import 'package:health_project/l10n/generated/app_localizations.dart';
 import 'affirmation.dart';
 import 'privacy.dart';
 import 'search.dart';
-import 'edit_profile.dart';
+import 'edit_profile.dart' hide EditProfilePage;
 import 'notifications.dart';
 import 'about_us.dart';
 import 'login_page.dart';
@@ -79,17 +79,7 @@ class _HomePageState extends State<HomePage> {
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _pageController = PageController(initialPage: _currentPage);
-    _loadUserData();
-    _pages = [
-      Container(), // Will set in didChangeDependencies
-      const AffirmationPage(),
-      const SearchPage(),
-    ];
-    _startAutoScroll();
-  }
+  
 
   @override
   void didChangeDependencies() {
@@ -164,7 +154,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             // Welcome message
             Text(
-              '${loc.welcome}, $_userName!',
+              '${loc.welcomeTo}, $_userName!',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,
@@ -562,4 +552,8 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+}
+
+class AffirmationPage {
+  const AffirmationPage();
 }

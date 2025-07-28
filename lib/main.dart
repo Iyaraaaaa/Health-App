@@ -13,7 +13,7 @@ import 'package:health_project/screens/on_bording.dart';
 import 'package:health_project/screens/signup_page.dart';
 import 'package:health_project/screens/splash_screen.dart';
 import 'package:health_project/screens/welcome.dart';
-import 'package:health_project/screens/affirmation.dart';
+import 'package:health_project/screens/affirmation.dart' hide EditProfilePage;
 import 'package:health_project/screens/search.dart';
 import 'package:health_project/screens/privacy.dart';
 import 'package:health_project/screens/contact_us.dart';

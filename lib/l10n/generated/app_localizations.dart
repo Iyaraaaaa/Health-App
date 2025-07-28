@@ -100,239 +100,179 @@ abstract class AppLocalizations {
     Locale('ta')
   ];
 
-  /// No description provided for @appTitle.
+  /// No description provided for @healthStaffAffirmation.
   ///
   /// In en, this message translates to:
-  /// **'My Health App'**
-  String get appTitle;
+  /// **'Health Staff Affirmation'**
+  String get healthStaffAffirmation;
 
-  /// No description provided for @welcome.
+  /// No description provided for @staffDetails.
   ///
   /// In en, this message translates to:
-  /// **'Welcome'**
-  String get welcome;
+  /// **'Staff Details'**
+  String get staffDetails;
 
-  /// No description provided for @home.
+  /// No description provided for @serialNumber.
   ///
   /// In en, this message translates to:
-  /// **'Home'**
-  String get home;
+  /// **'Serial Number'**
+  String get serialNumber;
 
-  /// No description provided for @affirmation.
+  /// No description provided for @officerName.
   ///
   /// In en, this message translates to:
-  /// **'Affirmation'**
-  String get affirmation;
+  /// **'Officer Name'**
+  String get officerName;
 
-  /// No description provided for @search.
+  /// No description provided for @nicNumber.
   ///
   /// In en, this message translates to:
-  /// **'Search'**
-  String get search;
+  /// **'NIC Number'**
+  String get nicNumber;
 
-  /// No description provided for @more.
+  /// No description provided for @designation.
   ///
   /// In en, this message translates to:
-  /// **'More'**
-  String get more;
+  /// **'Designation'**
+  String get designation;
 
-  /// No description provided for @editProfile.
+  /// No description provided for @serviceStation.
   ///
   /// In en, this message translates to:
-  /// **'Edit Profile'**
-  String get editProfile;
+  /// **'Service Station'**
+  String get serviceStation;
 
-  /// No description provided for @aboutUs.
+  /// No description provided for @datesSection.
   ///
   /// In en, this message translates to:
-  /// **'About Us'**
-  String get aboutUs;
+  /// **'Dates Section'**
+  String get datesSection;
 
-  /// No description provided for @notifications.
+  /// No description provided for @letterDate.
   ///
   /// In en, this message translates to:
-  /// **'Notifications'**
-  String get notifications;
+  /// **'Letter Date'**
+  String get letterDate;
 
-  /// No description provided for @logOut.
+  /// No description provided for @dateConfirmed.
   ///
   /// In en, this message translates to:
-  /// **'Log Out'**
-  String get logOut;
+  /// **'Date Confirmed'**
+  String get dateConfirmed;
 
-  /// No description provided for @ministryName.
+  /// No description provided for @responsibleOfficer.
   ///
   /// In en, this message translates to:
-  /// **'Ministry of Health'**
-  String get ministryName;
+  /// **'Responsible Officer'**
+  String get responsibleOfficer;
 
-  /// No description provided for @services.
+  /// No description provided for @fileNumber.
   ///
   /// In en, this message translates to:
-  /// **'Services'**
-  String get services;
+  /// **'File Number'**
+  String get fileNumber;
 
-  /// No description provided for @news.
+  /// No description provided for @deficiencyTracking.
   ///
   /// In en, this message translates to:
-  /// **'News'**
-  String get news;
+  /// **'Deficiency Tracking'**
+  String get deficiencyTracking;
 
-  /// No description provided for @emergency.
+  /// No description provided for @defNotifiedDate.
   ///
   /// In en, this message translates to:
-  /// **'Emergency'**
-  String get emergency;
+  /// **'Deficiency Notified Date'**
+  String get defNotifiedDate;
 
-  /// No description provided for @about.
+  /// No description provided for @defCorrectedDate.
   ///
   /// In en, this message translates to:
-  /// **'About'**
-  String get about;
+  /// **'Deficiency Corrected Date'**
+  String get defCorrectedDate;
 
-  /// No description provided for @settings.
+  /// No description provided for @approvalSection.
   ///
   /// In en, this message translates to:
-  /// **'Settings'**
-  String get settings;
+  /// **'Approval Section'**
+  String get approvalSection;
 
-  /// No description provided for @emergencyCalled.
+  /// No description provided for @sentDate.
   ///
   /// In en, this message translates to:
-  /// **'Emergency call made'**
-  String get emergencyCalled;
+  /// **'Sent Date'**
+  String get sentDate;
 
-  /// No description provided for @selected.
+  /// No description provided for @approvalGrantedDate.
   ///
   /// In en, this message translates to:
-  /// **'Selected item'**
-  String get selected;
+  /// **'Approval Granted Date'**
+  String get approvalGrantedDate;
 
-  /// No description provided for @privacy.
+  /// No description provided for @approvalNotifiedDate.
   ///
   /// In en, this message translates to:
-  /// **'Privacy'**
-  String get privacy;
+  /// **'Approval Notified Date'**
+  String get approvalNotifiedDate;
 
-  /// No description provided for @changeLanguage.
+  /// No description provided for @submitForm.
   ///
   /// In en, this message translates to:
-  /// **'Change Language'**
-  String get changeLanguage;
+  /// **'Submit Form'**
+  String get submitForm;
 
-  /// No description provided for @switchToLightMode.
+  /// No description provided for @requiredField.
   ///
   /// In en, this message translates to:
-  /// **'Switch to Light Mode'**
-  String get switchToLightMode;
+  /// **'This field is required.'**
+  String get requiredField;
 
-  /// No description provided for @switchToDarkMode.
+  /// No description provided for @selectDate.
   ///
   /// In en, this message translates to:
-  /// **'Switch to Dark Mode'**
-  String get switchToDarkMode;
+  /// **'Please select a date.'**
+  String get selectDate;
 
-  /// No description provided for @ourVision.
+  /// No description provided for @pleaseSelect.
   ///
   /// In en, this message translates to:
-  /// **'Our Vision'**
-  String get ourVision;
+  /// **'Please select an option.'**
+  String get pleaseSelect;
 
-  /// No description provided for @visionText.
+  /// No description provided for @selectLanguage.
   ///
   /// In en, this message translates to:
-  /// **'We pledge to keep people healthy, to offer high-quality care when it is required, and to safeguard the healthcare system for future generations.'**
-  String get visionText;
+  /// **'Select Language'**
+  String get selectLanguage;
 
-  /// No description provided for @ourMission.
+  /// No description provided for @success.
   ///
   /// In en, this message translates to:
-  /// **'Our Mission'**
-  String get ourMission;
+  /// **'Success'**
+  String get success;
 
-  /// No description provided for @missionText.
+  /// No description provided for @formSubmittedSuccess.
   ///
   /// In en, this message translates to:
-  /// **'To contribute to the social and economic development of Sri Lanka by achieving the highest attainable health levels through preventive, curative and rehabilitative services of high quality, available and accessible to people of Sri Lanka.'**
-  String get missionText;
+  /// **'The form has been successfully submitted.'**
+  String get formSubmittedSuccess;
 
-  /// No description provided for @readMore.
+  /// No description provided for @ok.
   ///
   /// In en, this message translates to:
-  /// **'READ MORE'**
-  String get readMore;
-
-  /// No description provided for @ministryLeadership.
-  ///
-  /// In en, this message translates to:
-  /// **'Ministry Leadership'**
-  String get ministryLeadership;
-
-  /// No description provided for @minister.
-  ///
-  /// In en, this message translates to:
-  /// **'Minister of Health'**
-  String get minister;
-
-  /// No description provided for @deputyMinister.
-  ///
-  /// In en, this message translates to:
-  /// **'Deputy Minister of Health'**
-  String get deputyMinister;
-
-  /// No description provided for @secretary.
-  ///
-  /// In en, this message translates to:
-  /// **'Secretary of Health'**
-  String get secretary;
-
-  /// No description provided for @directorGeneral.
-  ///
-  /// In en, this message translates to:
-  /// **'Director General of Health Services'**
-  String get directorGeneral;
-
-  /// No description provided for @english.
-  ///
-  /// In en, this message translates to:
-  /// **'English'**
-  String get english;
-
-  /// No description provided for @sinhala.
-  ///
-  /// In en, this message translates to:
-  /// **'Sinhala'**
-  String get sinhala;
-
-  /// No description provided for @tamil.
-  ///
-  /// In en, this message translates to:
-  /// **'Tamil'**
-  String get tamil;
-
-  /// No description provided for @contactUs.
-  ///
-  /// In en, this message translates to:
-  /// **'Contact Us'**
-  String get contactUs;
-
-  /// No description provided for @homeContactUs.
-  ///
-  /// In en, this message translates to:
-  /// **'Home / Contact Us'**
-  String get homeContactUs;
-
-  /// No description provided for @contactDetails.
-  ///
-  /// In en, this message translates to:
-  /// **'Contact Details'**
-  String get contactDetails;
+  /// **'OK'**
+  String get ok;
 
   /// No description provided for @generalInquiries.
   ///
   /// In en, this message translates to:
   /// **'General Inquiries'**
   String get generalInquiries;
+
+  /// No description provided for @contactDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Details'**
+  String get contactDetails;
 
   /// No description provided for @contactText.
   ///
@@ -363,24 +303,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Location on Map'**
   String get locationOnMap;
-
-  /// No description provided for @fullName.
-  ///
-  /// In en, this message translates to:
-  /// **'Full Name'**
-  String get fullName;
-
-  /// No description provided for @password.
-  ///
-  /// In en, this message translates to:
-  /// **'Password'**
-  String get password;
-
-  /// No description provided for @saveChanges.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Changes'**
-  String get saveChanges;
 
   /// No description provided for @appointmentReminder.
   ///
@@ -466,6 +388,192 @@ abstract class AppLocalizations {
   /// **'What are cookies?\n\nA cookie is a small file stored on your device. We use cookies to enhance user experience but we respect your privacy and provide an option to disable them.'**
   String get cookiePolicyContent;
 
+  /// No description provided for @homeContactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Home / Contact Us'**
+  String get homeContactUs;
+
+  /// No description provided for @contactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Us'**
+  String get contactUs;
+
+  /// No description provided for @home.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// No description provided for @affirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Affirmation'**
+  String get affirmation;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @more.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get more;
+
+  /// No description provided for @logOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Out'**
+  String get logOut;
+
+  /// No description provided for @ministryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Ministry of Health'**
+  String get ministryName;
+
+  /// No description provided for @services.
+  ///
+  /// In en, this message translates to:
+  /// **'Services'**
+  String get services;
+
+  /// No description provided for @news.
+  ///
+  /// In en, this message translates to:
+  /// **'News'**
+  String get news;
+
+  /// No description provided for @emergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get emergency;
+
+  /// No description provided for @about.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get about;
+
+  /// No description provided for @settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settings;
+
+  /// No description provided for @emergencyCalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency call made'**
+  String get emergencyCalled;
+
+  /// No description provided for @selected.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected item'**
+  String get selected;
+
+  /// No description provided for @privacy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy'**
+  String get privacy;
+
+  /// No description provided for @changeLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Language'**
+  String get changeLanguage;
+
+  /// No description provided for @switchToLightMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Light Mode'**
+  String get switchToLightMode;
+
+  /// No description provided for @switchToDarkMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Dark Mode'**
+  String get switchToDarkMode;
+
+  /// No description provided for @ourVision.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Vision'**
+  String get ourVision;
+
+  /// No description provided for @ourMission.
+  ///
+  /// In en, this message translates to:
+  /// **'Our Mission'**
+  String get ourMission;
+
+  /// No description provided for @missionText.
+  ///
+  /// In en, this message translates to:
+  /// **'To contribute to the social and economic development of Sri Lanka by achieving the highest attainable health levels through preventive, curative and rehabilitative services of high quality, available and accessible to people of Sri Lanka.'**
+  String get missionText;
+
+  /// No description provided for @readMore.
+  ///
+  /// In en, this message translates to:
+  /// **'READ MORE'**
+  String get readMore;
+
+  /// No description provided for @ministryLeadership.
+  ///
+  /// In en, this message translates to:
+  /// **'Ministry Leadership'**
+  String get ministryLeadership;
+
+  /// No description provided for @minister.
+  ///
+  /// In en, this message translates to:
+  /// **'Minister of Health and Mass Media'**
+  String get minister;
+
+  /// No description provided for @deputyMinister.
+  ///
+  /// In en, this message translates to:
+  /// **'Deputy Minister of Health and Mass Media'**
+  String get deputyMinister;
+
+  /// No description provided for @secretary.
+  ///
+  /// In en, this message translates to:
+  /// **'Secretary / Ministry of Health and Mass Media'**
+  String get secretary;
+
+  /// No description provided for @directorGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'Director General of Health Services'**
+  String get directorGeneral;
+
+  /// No description provided for @english.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get english;
+
+  /// No description provided for @sinhala.
+  ///
+  /// In en, this message translates to:
+  /// **'සිංහල'**
+  String get sinhala;
+
+  /// No description provided for @tamil.
+  ///
+  /// In en, this message translates to:
+  /// **'தமிழ்'**
+  String get tamil;
+
   /// No description provided for @welcomeTo.
   ///
   /// In en, this message translates to:
@@ -477,6 +585,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ministry of Health Sri Lanka'**
   String get ministryOfHealth;
+
+  /// No description provided for @visionText.
+  ///
+  /// In en, this message translates to:
+  /// **'We pledge to keep people healthy, to offer high-quality care when it is required, and to safeguard the healthcare system for future generations.'**
+  String get visionText;
 
   /// No description provided for @preHistoricMedicine.
   ///
@@ -490,11 +604,65 @@ abstract class AppLocalizations {
   /// **'Medicine under Sri Lankan kings'**
   String get medicineUnderSriLankanKings;
 
-  /// No description provided for @locLookup.
+  /// No description provided for @aboutUs.
   ///
   /// In en, this message translates to:
-  /// **'Look up regional variant'**
-  String get locLookup;
+  /// **'About Us'**
+  String get aboutUs;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @fullName.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Name'**
+  String get fullName;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// No description provided for @searchBySerialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by Serial Number'**
+  String get searchBySerialNumber;
+
+  /// No description provided for @enterSerialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Serial Number'**
+  String get enterSerialNumber;
+
+  /// No description provided for @noResultsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No Results Found'**
+  String get noResultsFound;
+
+  /// No description provided for @enterNICNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter NIC Number'**
+  String get enterNICNumber;
 }
 
 class _AppLocalizationsDelegate

@@ -14,9 +14,12 @@ class _PrivacyPolicyPageState extends State<PrivacyPage> {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final loc = AppLocalizations.of(context)!;
 
+    // AppBar background color change based on the theme
+    Color appBarColor = isDarkMode ? Colors.grey[850]! : Colors.blue;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: isDarkMode ? Colors.grey[850] : Colors.blue, // Dynamic background color based on theme
+        backgroundColor: appBarColor, // Dynamic background color based on theme
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -28,7 +31,10 @@ class _PrivacyPolicyPageState extends State<PrivacyPage> {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: isDarkMode ? Colors.white : Colors.black),
+          icon: Icon(
+            Icons.arrow_back,
+            color: isDarkMode ? Colors.white : Colors.black,
+          ),
           onPressed: () {
             Navigator.pop(context); // Return to previous screen
           },
@@ -39,6 +45,21 @@ class _PrivacyPolicyPageState extends State<PrivacyPage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              // Breadcrumb Section (Home / Privacy)
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Home / Privacy",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                ),
+              ),
+              // Privacy Policy Expansion Tiles
               _buildExpansionTile(0, loc.introduction, loc.introductionContent),
               _buildExpansionTile(1, loc.personalData, loc.personalDataContent),
               _buildExpansionTile(2, loc.cookiePolicy, loc.cookiePolicyContent),
