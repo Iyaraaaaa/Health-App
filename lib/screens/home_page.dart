@@ -153,7 +153,7 @@ class _HomePageState extends State<HomePage> {
     final bool isDark = widget.isDarkMode;
     final textColor = isDark ? Colors.white : Colors.black87;
     final cardColor = isDark ? Colors.grey[850]! : Colors.white;
-    final backgroundColor = isDark ? const Color.fromARGB(255, 53, 51, 51) : Colors.grey[100];
+    final backgroundColor = isDark ? Colors.black : Colors.grey[200]!;
 
     return Container(
       color: backgroundColor,
@@ -189,11 +189,6 @@ class _HomePageState extends State<HomePage> {
                           image: DecorationImage(
                             image: AssetImage(_sliderImages[index]),
                             fit: BoxFit.cover,
-                            colorFilter: isDark
-                                ? ColorFilter.mode(
-                                    Colors.black.withOpacity(0.7),
-                                    BlendMode.darken)
-                                : null,
                           ),
                         ),
                       ),
@@ -299,22 +294,6 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () {
-                  // Handle read more action
-                },
-                child: Text(
-                  loc.readMore,
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -398,7 +377,7 @@ class _HomePageState extends State<HomePage> {
         title: Text(_titles[_selectedIndex]),
         backgroundColor: widget.isDarkMode ? Colors.grey[900] : Colors.blue,
         actions: [
-          PopupMenuButton<Locale>(
+          PopupMenuButton<Locale>( // Language menu
             icon: const Icon(Icons.language),
             tooltip: loc.changeLanguage,
             onSelected: (Locale locale) {
@@ -528,7 +507,7 @@ class _HomePageState extends State<HomePage> {
           _buildDrawerItem(Icons.info, loc.aboutUs, Colors.teal, AboutUsPage()),
           _buildDrawerItem(Icons.phone, loc.contactUs, Colors.blue, const ContactUsPage()),
           _buildDrawerItem(Icons.logout, loc.logOut,
-              isDark ? Colors.deepPurple : Colors.amber.shade100,
+              isDark ? const Color.fromARGB(255, 144, 231, 163) : const Color.fromARGB(255, 198, 117, 174),
               const LoginPage(),
               isLogout: true),
         ],

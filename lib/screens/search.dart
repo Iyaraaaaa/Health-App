@@ -41,52 +41,83 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(loc.searchBySerialNumber),
-      ),
+      backgroundColor: isDark ? Colors.black : Colors.grey[100], // Background color for dark/light mode
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Title Section
+            Text(
+              'Get Your Information Here',
+              style: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.blueAccent,
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Instructions Section
+            Text(
+              'Please Enter Your NIC Number',
+              style: TextStyle(
+                fontSize: 18,
+                color: isDark ? Colors.white70 : Colors.blueGrey[800],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Search Input Field
             TextField(
               controller: searchController,
               textInputAction: TextInputAction.search,
               onSubmitted: searchById,
               decoration: InputDecoration(
-                labelText: loc.enterNICNumber,
-                hintText: "e.g., 945061685V",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                labelText: loc.enterNICNumber, // Updated label
+                hintText: "e.g., 945061685V", // NIC number hint
+                prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                filled: true,
+                fillColor: isDark ? Colors.grey[800] : Colors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               ),
             ),
             const SizedBox(height: 20),
+
+            // Results Section
             if (result != null)
               Card(
-                elevation: 6,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 8,
+                color: isDark ? Colors.grey[850] : Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       ListTile(
-                        leading: const Icon(Icons.person, color: Colors.blue),
-                        title: Text(result!['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(loc.designation + ": ${result!['designation']}"),
+                        leading: const Icon(Icons.person, color: Colors.blueAccent),
+                        title: Text(
+                          result!['name'] ?? '',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                        ),
+                        subtitle: Text("${loc.designation}: ${result!['designation']}"),
                       ),
                       const Divider(),
                       ListTile(
-                        leading: const Icon(Icons.badge),
+                        leading: const Icon(Icons.badge, color: Colors.blueAccent),
                         title: Text("${loc.nicNumber}: ${result!['nic']}"),
                       ),
                       ListTile(
-                        leading: const Icon(Icons.local_hospital),
+                        leading: const Icon(Icons.local_hospital, color: Colors.blueAccent),
                         title: Text("${loc.serviceStation}: ${result!['station']}"),
                       ),
                       ListTile(
-                        leading: const Icon(Icons.date_range),
+                        leading: const Icon(Icons.date_range, color: Colors.blueAccent),
                         title: Text("${loc.letterDate}: ${result!['letterDate']}"),
                       ),
                     ],
@@ -101,6 +132,34 @@ class _SearchPageState extends State<SearchPage> {
                   style: const TextStyle(fontSize: 16, color: Colors.redAccent),
                 ),
               ),
+
+            // Submit Button (Search Button)
+            const SizedBox(height: 20),
+            Center(
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.search),
+                label: Text(
+                  'Search',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  if (searchController.text.isNotEmpty) {
+                    searchById(searchController.text);
+                  }
+                },
+              ),
+            ),
           ],
         ),
       ),

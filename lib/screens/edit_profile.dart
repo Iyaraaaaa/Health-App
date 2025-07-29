@@ -177,12 +177,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: isDark ? Colors.black : const Color(0xFFF0F4F8),
       appBar: AppBar(
         title: const Text('Edit Profile'),
         centerTitle: true,
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: isDark ? Colors.black : Colors.blueAccent,
         elevation: 0,
       ),
       body: _isLoading
@@ -191,24 +193,24 @@ class _EditProfilePageState extends State<EditProfilePage> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  _buildProfileImage(),
+                  _buildProfileImage(isDark),
                   const SizedBox(height: 25),
-                  _buildFormFields(),
+                  _buildFormFields(isDark),
                   const SizedBox(height: 30),
-                  _buildSaveButton(),
+                  _buildSaveButton(isDark),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildProfileImage() {
+  Widget _buildProfileImage(bool isDark) {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
         CircleAvatar(
           radius: 60,
-          backgroundColor: Colors.blue.shade100,
+          backgroundColor: isDark ? Colors.grey[800] : Colors.blue.shade100,
           backgroundImage: _getImageProvider(),
           child: _image == null && widget.userImage.isEmpty
               ? const Icon(Icons.person, size: 50, color: Colors.white)
@@ -217,7 +219,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         Positioned(
           child: FloatingActionButton.small(
             onPressed: _pickImage,
-            backgroundColor: Colors.blueAccent,
+            backgroundColor: isDark ? Colors.grey[800] : Colors.blueAccent,
             child: const Icon(Icons.camera_alt, size: 20),
           ),
         ),
@@ -236,17 +238,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return const AssetImage('assets/images/default_profile.png');
   }
 
-  Widget _buildFormFields() {
+  Widget _buildFormFields(bool isDark) {
     return Column(
       children: [
-        _customTextField(nameController, 'Full Name', Icons.person),
+        _customTextField(nameController, 'Full Name', Icons.person, isDark),
         const SizedBox(height: 15),
-        _customTextField(emailController, 'Email', Icons.email),
+        _customTextField(emailController, 'Email', Icons.email, isDark),
         const SizedBox(height: 15),
         _customTextField(
           passwordController,
           'Password',
           Icons.lock,
+          isDark,
           obscureText: !_isPasswordVisible,
           suffixIcon: IconButton(
             icon: Icon(
@@ -263,16 +266,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Widget _customTextField(TextEditingController controller, String label, IconData icon,
-      {bool obscureText = false, Widget? suffixIcon}) {
+      bool isDark, {bool obscureText = false, Widget? suffixIcon}) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        prefixIcon: Icon(icon, color: isDark ? Colors.white : Colors.blueAccent),
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: isDark ? Colors.grey[800] : Colors.white,
         contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -282,7 +285,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     );
   }
 
-  Widget _buildSaveButton() {
+  Widget _buildSaveButton(bool isDark) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
@@ -292,7 +295,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          backgroundColor: Colors.blueAccent,
+          backgroundColor: isDark ? Colors.grey[800] : Colors.blueAccent,
         ),
         child: const Text(
           'Save Changes',

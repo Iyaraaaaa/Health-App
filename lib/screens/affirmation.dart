@@ -131,11 +131,10 @@ class _AffirmationPageState extends State<AffirmationPage> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(loc?.affirmation ?? 'Affirmation Form'),
-      ),
+      // AppBar removed
       body: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -146,6 +145,7 @@ class _AffirmationPageState extends State<AffirmationPage> {
                 key: _formKey,
                 child: Column(
                   children: [
+                    const SizedBox(height: 16), // Added space at the top since app bar is removed
                     buildSectionCard(
                       title: "📝 ${loc?.staffDetails ?? 'Staff Details'}",
                       children: [
@@ -192,6 +192,9 @@ class _AffirmationPageState extends State<AffirmationPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        backgroundColor: Colors.teal, // Button background color
+                        foregroundColor: Colors.white, // Text color white
+                        textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold), // Larger text size
                       ),
                       onPressed: () {
                         if (_formKey.currentState!.validate()) {
@@ -220,7 +223,7 @@ class _AffirmationPageState extends State<AffirmationPage> {
             Text(
               title,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Theme.of(context).primaryColor,
+                    color: Colors.teal, // Section title color
                     fontWeight: FontWeight.bold,
                   ),
             ),
