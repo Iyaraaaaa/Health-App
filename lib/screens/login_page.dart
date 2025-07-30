@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart'; // Import FirebaseAuth
 import 'package:flutter/material.dart';
+import 'package:health_project/screens/forgot_password.dart';
 
 class LoginPage extends StatefulWidget {
   static Route route() => MaterialPageRoute(
@@ -25,8 +27,57 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void loginUser() {
-    Navigator.pushReplacementNamed(context, '/home_page');
+  // Firebase login method
+  Future<void> loginUser() async {
+    setState(() => isLoading = true);  // Set loading state to true
+
+    try {
+      // Sign in the user using Firebase Authentication
+      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      // Successfully logged in
+      Navigator.pushReplacementNamed(context, '/home_page');  // Navigate to home page
+
+    } on FirebaseAuthException catch (e) {
+      setState(() => isLoading = false);  // Set loading state to false after error
+
+      String errorMessage = "Login Failed";
+      if (e.code == 'user-not-found') {
+        errorMessage = "No user found with this email.";
+      } else if (e.code == 'wrong-password') {
+        errorMessage = "Incorrect password.";
+      }
+
+      // Show error message in a dialog
+      _showErrorDialog(errorMessage);
+    } catch (e) {
+      setState(() => isLoading = false);  // Set loading state to false after error
+      _showErrorDialog('An unexpected error occurred: $e');
+    }
+  }
+
+  // Show error dialog
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();  // Close the dialog
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -57,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
         height: double.infinity,
         child: Stack(
           children: [
-            // Toggle Button at top right
+            // Dark Mode Toggle
             Positioned(
               top: 40,
               right: 20,
@@ -66,11 +117,7 @@ class _LoginPageState extends State<LoginPage> {
                   isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
                   color: isDarkMode ? Colors.amber : Colors.white,
                 ),
-                onPressed: () {
-                  setState(() {
-                    isDarkMode = !isDarkMode;
-                  });
-                },
+                onPressed: () => setState(() => isDarkMode = !isDarkMode),
               ),
             ),
 
@@ -170,7 +217,7 @@ class _LoginPageState extends State<LoginPage> {
                         const SizedBox(height: 10),
                         TextButton(
                           onPressed: () =>
-                              Navigator.pushNamed(context, '/forget'),
+                              Navigator.pushNamed(context, '/forgot_password'),
                           child: Text(
                             'Forgot Password?',
                             style: TextStyle(

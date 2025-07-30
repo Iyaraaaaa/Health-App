@@ -1,131 +1,213 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class ForgetPage extends StatefulWidget {
-  const ForgetPage({super.key});
+class ForgetPasswordPage extends StatefulWidget {
+  const ForgetPasswordPage({super.key});
 
   @override
-  State<ForgetPage> createState() => _ForgetPageState();
+  _ForgetPasswordPageState createState() => _ForgetPasswordPageState();
 }
 
-class _ForgetPageState extends State<ForgetPage> {
-  final TextEditingController _emailController = TextEditingController();
-  bool _isLoading = false;
-
-  Future<void> _sendPasswordResetLink() async {
-    final email = _emailController.text.trim();
-
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Please enter your email"),
-          backgroundColor: Color.fromARGB(255, 13, 64, 218),
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    // Simulate network delay
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-    setState(() => _isLoading = false);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Reset link sent to $email"),
-        backgroundColor: Colors.green,
-      ),
-    );
-
-    Navigator.pop(context);
-  }
+class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
+  final emailController = TextEditingController();
+  bool isLoading = false;
+  bool isDarkMode = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    emailController.dispose();
     super.dispose();
+  }
+
+  // Firebase password reset method
+  Future<void> resetPassword() async {
+    if (emailController.text.trim().isEmpty) {
+      _showErrorDialog('Please enter your email.');
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: emailController.text.trim(),
+      );
+      // Show success dialog
+      _showSuccessDialog('Password reset email sent!');
+    } on FirebaseAuthException catch (e) {
+      setState(() => isLoading = false);
+      String errorMessage = "Failed to send reset email";
+      if (e.code == 'user-not-found') {
+        errorMessage = "No user found with this email.";
+      } else if (e.code == 'invalid-email') {
+        errorMessage = "Invalid email format.";
+      }
+      _showErrorDialog(errorMessage);
+    } catch (e) {
+      setState(() => isLoading = false);
+      _showErrorDialog('An unexpected error occurred: $e');
+    }
+  }
+
+  // Show error dialog
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();  // Close the dialog
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Show success dialog
+  void _showSuccessDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Success'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/login_page'); // Navigate back to login
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Forgot Password"),
-        backgroundColor: const Color.fromARGB(255, 243, 242, 243),
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/login.webp',
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(),
-            ),
-          ),
-          Center(
-            child: SingleChildScrollView(
-              child: Card(
-                margin: const EdgeInsets.all(20),
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: isDarkMode
+              ? const LinearGradient(
+                  colors: [
+                    Color(0xFF121212),
+                    Color(0xFF424242),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : const LinearGradient(
+                  colors: [
+                    Color(0xFF008080),
+                    Color(0xFF4F86F7),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                color: Colors.white.withOpacity(0.9),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        'FORGOT PASSWORD',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _emailController,
-                        decoration: const InputDecoration(
-                          labelText: "Enter your email",
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.emailAddress,
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _sendPasswordResetLink,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(255, 13, 64, 218),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+        width: double.infinity,
+        height: double.infinity,
+        child: Stack(
+          children: [
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: Icon(
+                  isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
+                  color: isDarkMode ? Colors.amber : Colors.white,
+                ),
+                onPressed: () => setState(() => isDarkMode = !isDarkMode),
+              ),
+            ),
+            Center(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                child: Card(
+                  elevation: 12,
+                  color: isDarkMode
+                      ? Colors.grey[900]
+                      : Colors.white.withOpacity(0.95),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'FORGOT PASSWORD',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: isDarkMode ? Colors.white : Colors.black,
                           ),
-                          child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
+                        ),
+                        const SizedBox(height: 20),
+                        TextFormField(
+                          controller: emailController,
+                          style: TextStyle(
+                              color: isDarkMode ? Colors.white : Colors.black),
+                          decoration: InputDecoration(
+                            labelText: 'Email',
+                            labelStyle: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.black87),
+                            filled: true,
+                            fillColor: isDarkMode
+                                ? Colors.grey[850]
+                                : Colors.grey[100],
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: isLoading ? null : resetPassword,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0D40DA),
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(double.infinity, 48),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10)),
+                          ),
+                          child: isLoading
+                              ? const CircularProgressIndicator(
+                                  color: Colors.white)
                               : const Text('SEND RESET LINK'),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Back to Login'),
-                      ),
-                    ],
+                        const SizedBox(height: 10),
+                        TextButton(
+                          onPressed: () =>
+                              Navigator.pushReplacementNamed(context, '/login_page'),
+                          child: Text(
+                            "Remembered your password? LOGIN",
+                            style: TextStyle(
+                                color: isDarkMode
+                                    ? Colors.white70
+                                    : Colors.black87),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

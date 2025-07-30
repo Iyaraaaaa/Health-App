@@ -1,7 +1,10 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
 
 class SignupPage extends StatefulWidget {
   static Route route() => MaterialPageRoute(
@@ -15,6 +18,7 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
+  final fullNameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
@@ -22,13 +26,14 @@ class _SignupPageState extends State<SignupPage> {
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
   bool isDarkMode = false;
+  bool isLoading = false;
 
   File? _pickedImage;
-
   final ImagePicker _picker = ImagePicker();
 
   @override
   void dispose() {
+    fullNameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
@@ -48,8 +53,92 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
-  void signUpUser() {
-    Navigator.pushReplacementNamed(context, '/login');
+  Future<String?> _uploadImage(String userId) async {
+    if (_pickedImage == null) return null;
+
+    try {
+      final storageRef = FirebaseStorage.instance.ref();
+      final imageRef = storageRef.child(
+        'profile_images/$userId${path.extension(_pickedImage!.path)}',
+      );
+      await imageRef.putFile(_pickedImage!);
+      return await imageRef.getDownloadURL();
+    } catch (e) {
+      print('Error uploading image: $e');
+      return null;
+    }
+  }
+
+  Future<void> _saveUserData(User user, String? imageUrl) async {
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'id': user.uid,
+        'email': user.email,
+        'fullName': fullNameController.text.trim(),
+        'profileImage': imageUrl,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      print('Error saving user data: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> signUpUser() async {
+    if (passwordController.text != confirmPasswordController.text) {
+      _showErrorDialog('Passwords do not match.');
+      return;
+    }
+
+    if (fullNameController.text.trim().isEmpty) {
+      _showErrorDialog('Please enter your full name.');
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      String? imageUrl = await _uploadImage(userCredential.user!.uid);
+      await _saveUserData(userCredential.user!, imageUrl);
+
+      Navigator.pushReplacementNamed(context, '/login');
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'An error occurred. Please try again.';
+      if (e.code == 'weak-password') {
+        errorMessage = 'The password is too weak.';
+      } else if (e.code == 'email-already-in-use') {
+        errorMessage = 'The email is already in use.';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'The email address is invalid.';
+      }
+      _showErrorDialog(errorMessage);
+    } catch (e) {
+      _showErrorDialog('An unexpected error occurred: $e');
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Error'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -60,27 +149,18 @@ class _SignupPageState extends State<SignupPage> {
         decoration: BoxDecoration(
           gradient: isDarkMode
               ? const LinearGradient(
-                  colors: [
-                    Color(0xFF121212),
-                    Color(0xFF424242),
-                  ],
+                  colors: [Color(0xFF121212), Color(0xFF424242)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
               : const LinearGradient(
-                  colors: [
-                    Color(0xFF008080),
-                    Color(0xFF4F86F7),
-                  ],
+                  colors: [Color(0xFF008080), Color(0xFF4F86F7)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
         ),
-        width: double.infinity,
-        height: double.infinity,
         child: Stack(
           children: [
-            // Dark Mode Toggle
             Positioned(
               top: 40,
               right: 20,
@@ -92,8 +172,6 @@ class _SignupPageState extends State<SignupPage> {
                 onPressed: () => setState(() => isDarkMode = !isDarkMode),
               ),
             ),
-
-            // Center Signup Card
             Center(
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
@@ -111,22 +189,24 @@ class _SignupPageState extends State<SignupPage> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Image picker avatar
                           GestureDetector(
                             onTap: _pickImage,
                             child: CircleAvatar(
                               radius: 50,
-                              backgroundColor: isDarkMode
-                                  ? Colors.grey[800]
-                                  : Colors.grey[300],
+                              backgroundColor:
+                                  isDarkMode ? Colors.grey[800] : Colors.grey[300],
                               backgroundImage: _pickedImage != null
                                   ? FileImage(_pickedImage!)
                                   : const AssetImage('assets/images/empty.jpg')
                                       as ImageProvider,
+                              child: _pickedImage == null && !isLoading
+                                  ? Icon(Icons.person, size: 40, color: Colors.grey[600])
+                                  : isLoading
+                                      ? const CircularProgressIndicator()
+                                      : null,
                             ),
                           ),
                           const SizedBox(height: 16),
-
                           Text(
                             'SIGN UP',
                             style: TextStyle(
@@ -137,120 +217,66 @@ class _SignupPageState extends State<SignupPage> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Email Field
-                          TextField(
+                          /// Full Name
+                          _buildTextField(
+                            controller: fullNameController,
+                            label: 'Full Name',
+                            isPassword: false,
+                          ),
+                          const SizedBox(height: 12),
+
+                          _buildTextField(
                             controller: emailController,
-                            style: TextStyle(
-                                color: isDarkMode ? Colors.white : Colors.black),
-                            decoration: InputDecoration(
-                              labelText: 'Email',
-                              labelStyle: TextStyle(
-                                  color: isDarkMode
-                                      ? Colors.white70
-                                      : Colors.black87),
-                              filled: true,
-                              fillColor: isDarkMode
-                                  ? Colors.grey[850]
-                                  : Colors.grey[100],
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                            ),
+                            label: 'Email',
+                            isPassword: false,
                           ),
                           const SizedBox(height: 12),
 
-                          // Password Field
-                          TextField(
+                          _buildTextField(
                             controller: passwordController,
-                            obscureText: !isPasswordVisible,
-                            style: TextStyle(
-                                color: isDarkMode ? Colors.white : Colors.black),
-                            decoration: InputDecoration(
-                              labelText: 'Password',
-                              labelStyle: TextStyle(
-                                  color: isDarkMode
-                                      ? Colors.white70
-                                      : Colors.black87),
-                              filled: true,
-                              fillColor: isDarkMode
-                                  ? Colors.grey[850]
-                                  : Colors.grey[100],
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  isPasswordVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                  color: isDarkMode
-                                      ? Colors.white70
-                                      : Colors.black45,
-                                ),
-                                onPressed: () => setState(
-                                    () => isPasswordVisible = !isPasswordVisible),
-                              ),
-                            ),
+                            label: 'Password',
+                            isPassword: true,
+                            isVisible: isPasswordVisible,
+                            onVisibilityChanged: () =>
+                                setState(() => isPasswordVisible = !isPasswordVisible),
                           ),
                           const SizedBox(height: 12),
 
-                          // Confirm Password Field
-                          TextField(
+                          _buildTextField(
                             controller: confirmPasswordController,
-                            obscureText: !isConfirmPasswordVisible,
-                            style: TextStyle(
-                                color: isDarkMode ? Colors.white : Colors.black),
-                            decoration: InputDecoration(
-                              labelText: 'Confirm Password',
-                              labelStyle: TextStyle(
-                                  color: isDarkMode
-                                      ? Colors.white70
-                                      : Colors.black87),
-                              filled: true,
-                              fillColor: isDarkMode
-                                  ? Colors.grey[850]
-                                  : Colors.grey[100],
-                              border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8)),
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  isConfirmPasswordVisible
-                                      ? Icons.visibility
-                                      : Icons.visibility_off,
-                                  color: isDarkMode
-                                      ? Colors.white70
-                                      : Colors.black45,
-                                ),
-                                onPressed: () => setState(() =>
-                                    isConfirmPasswordVisible =
-                                        !isConfirmPasswordVisible),
-                              ),
-                            ),
+                            label: 'Confirm Password',
+                            isPassword: true,
+                            isVisible: isConfirmPasswordVisible,
+                            onVisibilityChanged: () => setState(
+                                () => isConfirmPasswordVisible = !isConfirmPasswordVisible),
                           ),
                           const SizedBox(height: 16),
 
-                          // Sign Up Button
                           ElevatedButton(
-                            onPressed: signUpUser,
+                            onPressed: isLoading ? null : signUpUser,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF0D40DA),
                               foregroundColor: Colors.white,
                               minimumSize: const Size(double.infinity, 48),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10)),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
-                            child: const Text('SIGN UP'),
+                            child: isLoading
+                                ? const CircularProgressIndicator(
+                                    color: Colors.white,
+                                  )
+                                : const Text('SIGN UP'),
                           ),
                           const SizedBox(height: 10),
-
-                          // Login Link
                           TextButton(
                             onPressed: () =>
                                 Navigator.pushReplacementNamed(context, '/login_page'),
                             child: Text(
                               "Already have an account? LOGIN",
                               style: TextStyle(
-                                  color: isDarkMode
-                                      ? Colors.white70
-                                      : Colors.black87),
+                                color: isDarkMode ? Colors.white70 : Colors.black87,
+                              ),
                             ),
                           ),
                         ],
@@ -262,6 +288,36 @@ class _SignupPageState extends State<SignupPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    bool isPassword = false,
+    bool isVisible = false,
+    VoidCallback? onVisibilityChanged,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword && !isVisible,
+      style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87),
+        filled: true,
+        fillColor: isDarkMode ? Colors.grey[850] : Colors.grey[100],
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        suffixIcon: isPassword
+            ? IconButton(
+                icon: Icon(
+                  isVisible ? Icons.visibility : Icons.visibility_off,
+                  color: isDarkMode ? Colors.white70 : Colors.black45,
+                ),
+                onPressed: onVisibilityChanged,
+              )
+            : null,
       ),
     );
   }

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 import 'package:health_project/l10n/generated/app_localizations.dart';
 
 import 'package:health_project/screens/about_us.dart';
@@ -36,7 +39,13 @@ class RouteNames {
   static const contactUs = '/contact_us';
 }
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const MyApp());
 }
 
@@ -79,12 +88,15 @@ class _MyAppState extends State<MyApp> {
       ],
       initialRoute: RouteNames.splash,
       routes: {
+        // ✅ Aliased route to fix the error
+        '/login': (context) => const LoginPage(),
+
         RouteNames.splash: (context) => const SplashScreen(),
         RouteNames.welcome: (context) => const WelcomePage(),
         RouteNames.onBoarding: (context) => const OnBoardingScreen(),
         RouteNames.login: (context) => const LoginPage(),
         RouteNames.signup: (context) => const SignupPage(),
-        RouteNames.forgotPassword: (context) => const ForgetPage(),
+        RouteNames.forgotPassword: (context) => const ForgetPasswordPage(),
         RouteNames.home: (context) => HomePage(
               onLocaleChange: setLocale,
               locale: _locale,
@@ -99,12 +111,11 @@ class _MyAppState extends State<MyApp> {
         RouteNames.aboutUs: (context) => AboutUsPage(),
         RouteNames.notifications: (context) => NotificationsPage(),
         RouteNames.logout: (context) => const LogoutPage(),
-        RouteNames.affirmation: (context) => AffirmationPage(), // Ensure it's being used as a Widget here
+        RouteNames.affirmation: (context) => AffirmationPage(),
         RouteNames.search: (context) => const SearchPage(),
         RouteNames.privacy: (context) => PrivacyPage(),
         RouteNames.contactUs: (context) => const ContactUsPage(),
       },
     );
   }
-
 }
