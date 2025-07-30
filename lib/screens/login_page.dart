@@ -66,7 +66,6 @@ class _LoginPageState extends State<LoginPage> {
 
       _showSuccessSnackBar('Welcome back!');
       Navigator.pushReplacementNamed(context, '/home_page');
-
     } on FirebaseAuthException catch (e) {
       String errorMessage = "Login Failed";
       if (e.code == 'user-not-found') {
@@ -158,7 +157,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
-              
               // Main content
               Positioned.fill(
                 child: Padding(
@@ -212,7 +210,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(height: isSmallScreen ? 24 : 32),
 
-                                  // Email field
+                                  // Email field with black margin and border
                                   _buildTextField(
                                     controller: emailController,
                                     label: 'Email',
@@ -223,7 +221,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(height: isSmallScreen ? 16 : 20),
 
-                                  // Password field
+                                  // Password field with eye icon to toggle visibility
                                   _buildTextField(
                                     controller: passwordController,
                                     label: 'Password',
@@ -444,7 +442,7 @@ class _LoginPageState extends State<LoginPage> {
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: Colors.red[400]!,
+            color: Colors.red[400]!, 
             width: 1,
           ),
         ),

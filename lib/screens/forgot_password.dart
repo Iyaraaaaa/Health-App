@@ -9,6 +9,7 @@ class ForgetPasswordPage extends StatefulWidget {
 }
 
 class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
+  final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   bool isLoading = false;
   bool isDarkMode = false;
@@ -19,10 +20,20 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
     super.dispose();
   }
 
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter your email';
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'Please enter a valid email address';
+    }
+    return null;
+  }
+
   // Firebase password reset method
   Future<void> resetPassword() async {
-    if (emailController.text.trim().isEmpty) {
-      _showErrorDialog('Please enter your email.');
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -32,62 +43,51 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
       await FirebaseAuth.instance.sendPasswordResetEmail(
         email: emailController.text.trim(),
       );
-      // Show success dialog
-      _showSuccessDialog('Password reset email sent!');
+      _showSuccessSnackBar('Password reset email sent!');
+      // Optional: Navigate back to login after successful reset
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/login_page');
+        }
+      });
     } on FirebaseAuthException catch (e) {
-      setState(() => isLoading = false);
       String errorMessage = "Failed to send reset email";
       if (e.code == 'user-not-found') {
         errorMessage = "No user found with this email.";
       } else if (e.code == 'invalid-email') {
         errorMessage = "Invalid email format.";
+      } else if (e.code == 'too-many-requests') {
+        errorMessage = "Too many requests. Please try again later.";
       }
-      _showErrorDialog(errorMessage);
+      _showErrorSnackBar(errorMessage);
     } catch (e) {
+      _showErrorSnackBar('An unexpected error occurred');
+    } finally {
       setState(() => isLoading = false);
-      _showErrorDialog('An unexpected error occurred: $e');
     }
   }
 
-  // Show error dialog
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();  // Close the dialog
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
     );
   }
 
-  // Show success dialog
-  void _showSuccessDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Success'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/login_page'); // Navigate back to login
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        );
-      },
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
     );
   }
 
@@ -105,18 +105,12 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
         decoration: BoxDecoration(
           gradient: isDarkMode
               ? const LinearGradient(
-                  colors: [
-                    Color(0xFF121212),
-                    Color(0xFF424242),
-                  ],
+                  colors: [Color(0xFF121212), Color(0xFF424242)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 )
               : const LinearGradient(
-                  colors: [
-                    Color(0xFF008080),
-                    Color(0xFF4F86F7),
-                  ],
+                  colors: [Color(0xFF008080), Color(0xFF4F86F7)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -148,7 +142,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: screenWidth > 600 ? screenWidth * 0.25 : 20,
-                    vertical: isSmallScreen ? 10 : 20,
+                    vertical: isSmallScreen ? 20 : 40,
                   ),
                   child: Center(
                     child: SingleChildScrollView(
@@ -168,14 +162,15 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                           child: Container(
                             constraints: BoxConstraints(
                               maxWidth: 400,
-                              minHeight: isSmallScreen ? 300 : 380,
+                              minHeight: isSmallScreen ? 400 : 480,
                             ),
                             padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
                             child: Form(
+                              key: _formKey,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // Title
+                                  // Title and subtitle
                                   Text(
                                     'FORGOT PASSWORD',
                                     style: TextStyle(
@@ -185,17 +180,26 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                                       letterSpacing: 1.5,
                                     ),
                                   ),
-                                  SizedBox(height: isSmallScreen ? 16 : 20),
+                                  SizedBox(height: isSmallScreen ? 4 : 8),
+                                  Text(
+                                    'Enter your email to reset password',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14 : 16,
+                                      color: isDarkMode ? Colors.white60 : Colors.black54,
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 24 : 32),
 
                                   // Email field
                                   _buildTextField(
                                     controller: emailController,
                                     label: 'Email',
                                     prefixIcon: Icons.email_outlined,
+                                    validator: _validateEmail,
                                     keyboardType: TextInputType.emailAddress,
                                     isSmallScreen: isSmallScreen,
                                   ),
-                                  SizedBox(height: isSmallScreen ? 16 : 20),
+                                  SizedBox(height: isSmallScreen ? 28 : 32),
 
                                   // Reset button
                                   AnimatedContainer(
@@ -232,12 +236,43 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                                             ),
                                     ),
                                   ),
+                                  SizedBox(height: isSmallScreen ? 20 : 24),
+
+                                  // Divider
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Divider(
+                                          color: isDarkMode ? Colors.white30 : Colors.black26,
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                                        child: Text(
+                                          'OR',
+                                          style: TextStyle(
+                                            color: isDarkMode ? Colors.white60 : Colors.black54,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: isSmallScreen ? 12 : 14,
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Divider(
+                                          color: isDarkMode ? Colors.white30 : Colors.black26,
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                   SizedBox(height: isSmallScreen ? 16 : 20),
 
-                                  // Login link with blue and underlined text
+                                  // Login link
                                   TextButton(
-                                    onPressed: () =>
-                                        Navigator.pushReplacementNamed(context, '/login_page'),
+                                    onPressed: isLoading
+                                        ? null
+                                        : () => Navigator.pushReplacementNamed(context, '/login_page'),
                                     child: RichText(
                                       text: TextSpan(
                                         style: TextStyle(
@@ -279,66 +314,64 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
     required TextEditingController controller,
     required String label,
     required IconData prefixIcon,
+    String? Function(String?)? validator,
     TextInputType? keyboardType,
     bool isSmallScreen = false,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16), // Adding bottom margin for spacing
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.black, width: 2), // Black border around text field
+    return TextFormField(
+      controller: controller,
+      validator: validator,
+      keyboardType: keyboardType,
+      style: TextStyle(
+        color: isDarkMode ? Colors.white : Colors.black87,
+        fontSize: isSmallScreen ? 14 : 16,
       ),
-      child: TextFormField(
-        controller: controller,
-        style: TextStyle(
-          color: isDarkMode ? Colors.white : Colors.black87,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(
+          prefixIcon,
+          color: isDarkMode ? Colors.white60 : Colors.grey[600],
+          size: isSmallScreen ? 20 : 24,
+        ),
+        labelStyle: TextStyle(
+          color: isDarkMode ? Colors.white70 : Colors.black54,
           fontSize: isSmallScreen ? 14 : 16,
         ),
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelText: label,
-          prefixIcon: Icon(
-            prefixIcon,
-            color: isDarkMode ? Colors.white60 : Colors.grey[600],
-            size: isSmallScreen ? 20 : 24,
+        filled: true,
+        fillColor: isDarkMode 
+            ? Colors.grey[850]?.withOpacity(0.8) 
+            : Colors.grey[100]?.withOpacity(0.8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.black, // Black border color
+            width: 2,
           ),
-          labelStyle: TextStyle(
-            color: isDarkMode ? Colors.white70 : Colors.black54,
-            fontSize: isSmallScreen ? 14 : 16,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFF0D40DA),
+            width: 2,
           ),
-          filled: true,
-          fillColor: isDarkMode
-              ? Colors.grey[850]?.withOpacity(0.8)
-              : Colors.grey[100]?.withOpacity(0.8),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red[400]!, 
+            width: 1,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(
-              color: Color(0xFF0D40DA),
-              width: 2,
-            ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red[400]!,
+            width: 2,
           ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: Colors.red[400]!,
-              width: 1,
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(
-              color: Colors.red[400]!,
-              width: 2,
-            ),
-          ),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: isSmallScreen ? 12 : 16,
-          ),
+        ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: isSmallScreen ? 12 : 16,
         ),
       ),
     );
