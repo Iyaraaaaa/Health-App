@@ -93,9 +93,15 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenHeight < 700;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
+        height: screenHeight,
+        width: screenWidth,
         decoration: BoxDecoration(
           gradient: isDarkMode
               ? const LinearGradient(
@@ -115,98 +121,224 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                   end: Alignment.bottomRight,
                 ),
         ),
-        width: double.infinity,
-        height: double.infinity,
-        child: Stack(
-          children: [
-            Positioned(
-              top: 40,
-              right: 20,
-              child: IconButton(
-                icon: Icon(
-                  isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
-                  color: isDarkMode ? Colors.amber : Colors.white,
-                ),
-                onPressed: () => setState(() => isDarkMode = !isDarkMode),
-              ),
-            ),
-            Center(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                child: Card(
-                  elevation: 12,
-                  color: isDarkMode
-                      ? Colors.grey[900]
-                      : Colors.white.withOpacity(0.95),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Theme toggle button
+              Positioned(
+                top: 10,
+                right: 20,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(25),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'FORGOT PASSWORD',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: isDarkMode ? Colors.white : Colors.black,
+                  child: IconButton(
+                    icon: Icon(
+                      isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
+                      color: isDarkMode ? Colors.amber : Colors.white,
+                      size: 24,
+                    ),
+                    onPressed: () => setState(() => isDarkMode = !isDarkMode),
+                  ),
+                ),
+              ),
+              // Main content
+              Positioned.fill(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth > 600 ? screenWidth * 0.25 : 20,
+                    vertical: isSmallScreen ? 10 : 20,
+                  ),
+                  child: Center(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                        child: Card(
+                          elevation: 20,
+                          shadowColor: Colors.black.withOpacity(0.3),
+                          color: isDarkMode
+                              ? Colors.grey[900]?.withOpacity(0.95)
+                              : Colors.white.withOpacity(0.95),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxWidth: 400,
+                              minHeight: isSmallScreen ? 300 : 380,
+                            ),
+                            padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
+                            child: Form(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Title
+                                  Text(
+                                    'FORGOT PASSWORD',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 24 : 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDarkMode ? Colors.white : Colors.black87,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 16 : 20),
+
+                                  // Email field
+                                  _buildTextField(
+                                    controller: emailController,
+                                    label: 'Email',
+                                    prefixIcon: Icons.email_outlined,
+                                    keyboardType: TextInputType.emailAddress,
+                                    isSmallScreen: isSmallScreen,
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 16 : 20),
+
+                                  // Reset button
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: double.infinity,
+                                    height: isSmallScreen ? 48 : 52,
+                                    child: ElevatedButton(
+                                      onPressed: isLoading ? null : resetPassword,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF0D40DA),
+                                        foregroundColor: Colors.white,
+                                        elevation: 8,
+                                        shadowColor: const Color(0xFF0D40DA).withOpacity(0.4),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: isLoading
+                                          ? const SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : Text(
+                                              'SEND RESET LINK',
+                                              style: TextStyle(
+                                                fontSize: isSmallScreen ? 16 : 18,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 1,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 16 : 20),
+
+                                  // Login link with blue and underlined text
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pushReplacementNamed(context, '/login_page'),
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: TextStyle(
+                                          fontSize: isSmallScreen ? 14 : 15,
+                                          color: isDarkMode ? Colors.white70 : Colors.black87,
+                                        ),
+                                        children: [
+                                          const TextSpan(text: "Remembered your password? "),
+                                          TextSpan(
+                                            text: "LOGIN",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color(0xFF0D40DA),
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 20),
-                        TextFormField(
-                          controller: emailController,
-                          style: TextStyle(
-                              color: isDarkMode ? Colors.white : Colors.black),
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            labelStyle: TextStyle(
-                                color: isDarkMode
-                                    ? Colors.white70
-                                    : Colors.black87),
-                            filled: true,
-                            fillColor: isDarkMode
-                                ? Colors.grey[850]
-                                : Colors.grey[100],
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8)),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: isLoading ? null : resetPassword,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0D40DA),
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(double.infinity, 48),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: isLoading
-                              ? const CircularProgressIndicator(
-                                  color: Colors.white)
-                              : const Text('SEND RESET LINK'),
-                        ),
-                        const SizedBox(height: 10),
-                        TextButton(
-                          onPressed: () =>
-                              Navigator.pushReplacementNamed(context, '/login_page'),
-                          child: Text(
-                            "Remembered your password? LOGIN",
-                            style: TextStyle(
-                                color: isDarkMode
-                                    ? Colors.white70
-                                    : Colors.black87),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData prefixIcon,
+    TextInputType? keyboardType,
+    bool isSmallScreen = false,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16), // Adding bottom margin for spacing
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black, width: 2), // Black border around text field
+      ),
+      child: TextFormField(
+        controller: controller,
+        style: TextStyle(
+          color: isDarkMode ? Colors.white : Colors.black87,
+          fontSize: isSmallScreen ? 14 : 16,
+        ),
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(
+            prefixIcon,
+            color: isDarkMode ? Colors.white60 : Colors.grey[600],
+            size: isSmallScreen ? 20 : 24,
+          ),
+          labelStyle: TextStyle(
+            color: isDarkMode ? Colors.white70 : Colors.black54,
+            fontSize: isSmallScreen ? 14 : 16,
+          ),
+          filled: true,
+          fillColor: isDarkMode
+              ? Colors.grey[850]?.withOpacity(0.8)
+              : Colors.grey[100]?.withOpacity(0.8),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(
+              color: Color(0xFF0D40DA),
+              width: 2,
             ),
-          ],
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: Colors.red[400]!,
+              width: 1,
+            ),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(
+              color: Colors.red[400]!,
+              width: 2,
+            ),
+          ),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: isSmallScreen ? 12 : 16,
+          ),
         ),
       ),
     );

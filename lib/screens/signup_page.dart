@@ -18,6 +18,7 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
+  final _formKey = GlobalKey<FormState>();
   final fullNameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -41,15 +42,20 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 600,
-    );
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 600,
+        imageQuality: 80,
+      );
 
-    if (pickedFile != null) {
-      setState(() {
-        _pickedImage = File(pickedFile.path);
-      });
+      if (pickedFile != null) {
+        setState(() {
+          _pickedImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      _showErrorSnackBar('Failed to pick image: $e');
     }
   }
 
@@ -84,14 +90,49 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
-  Future<void> signUpUser() async {
-    if (passwordController.text != confirmPasswordController.text) {
-      _showErrorDialog('Passwords do not match.');
-      return;
+  String? _validateFullName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter your full name';
     }
+    if (value.trim().length < 2) {
+      return 'Name must be at least 2 characters';
+    }
+    return null;
+  }
 
-    if (fullNameController.text.trim().isEmpty) {
-      _showErrorDialog('Please enter your full name.');
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Please enter your email';
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'Please enter a valid email address';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please enter a password';
+    }
+    if (value.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    return null;
+  }
+
+  String? _validateConfirmPassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Please confirm your password';
+    }
+    if (value != passwordController.text) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
+  Future<void> signUpUser() async {
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -107,6 +148,7 @@ class _SignupPageState extends State<SignupPage> {
       String? imageUrl = await _uploadImage(userCredential.user!.uid);
       await _saveUserData(userCredential.user!, imageUrl);
 
+      _showSuccessSnackBar('Account created successfully!');
       Navigator.pushReplacementNamed(context, '/login');
     } on FirebaseAuthException catch (e) {
       String errorMessage = 'An error occurred. Please try again.';
@@ -117,35 +159,49 @@ class _SignupPageState extends State<SignupPage> {
       } else if (e.code == 'invalid-email') {
         errorMessage = 'The email address is invalid.';
       }
-      _showErrorDialog(errorMessage);
+      _showErrorSnackBar(errorMessage);
     } catch (e) {
-      _showErrorDialog('An unexpected error occurred: $e');
+      _showErrorSnackBar('An unexpected error occurred');
     } finally {
       setState(() => isLoading = false);
     }
   }
 
-  void _showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Error'),
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
         content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
+        backgroundColor: Colors.red[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenHeight < 700;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
+        height: screenHeight,
+        width: screenWidth,
         decoration: BoxDecoration(
           gradient: isDarkMode
               ? const LinearGradient(
@@ -159,134 +215,243 @@ class _SignupPageState extends State<SignupPage> {
                   end: Alignment.bottomRight,
                 ),
         ),
-        child: Stack(
-          children: [
-            Positioned(
-              top: 40,
-              right: 20,
-              child: IconButton(
-                icon: Icon(
-                  isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
-                  color: isDarkMode ? Colors.amber : Colors.white,
-                ),
-                onPressed: () => setState(() => isDarkMode = !isDarkMode),
-              ),
-            ),
-            Center(
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                child: Card(
-                  elevation: 12,
-                  color: isDarkMode
-                      ? Colors.grey[900]
-                      : Colors.white.withOpacity(0.95),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // Theme toggle button
+              Positioned(
+                top: 10,
+                right: 20,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(25),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
+                  child: IconButton(
+                    icon: Icon(
+                      isDarkMode ? Icons.nightlight_round : Icons.wb_sunny,
+                      color: isDarkMode ? Colors.amber : Colors.white,
+                      size: 24,
+                    ),
+                    onPressed: () => setState(() => isDarkMode = !isDarkMode),
+                  ),
+                ),
+              ),
+              // Main content
+              Positioned.fill(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth > 600 ? screenWidth * 0.25 : 20,
+                    vertical: isSmallScreen ? 10 : 20,
+                  ),
+                  child: Center(
                     child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          GestureDetector(
-                            onTap: _pickImage,
-                            child: CircleAvatar(
-                              radius: 50,
-                              backgroundColor:
-                                  isDarkMode ? Colors.grey[800] : Colors.grey[300],
-                              backgroundImage: _pickedImage != null
-                                  ? FileImage(_pickedImage!)
-                                  : const AssetImage('assets/images/empty.jpg')
-                                      as ImageProvider,
-                              child: _pickedImage == null && !isLoading
-                                  ? Icon(Icons.person, size: 40, color: Colors.grey[600])
-                                  : isLoading
-                                      ? const CircularProgressIndicator()
-                                      : null,
+                      physics: const BouncingScrollPhysics(),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 500),
+                        curve: Curves.easeInOut,
+                        child: Card(
+                          elevation: 20,
+                          shadowColor: Colors.black.withOpacity(0.3),
+                          color: isDarkMode
+                              ? Colors.grey[900]?.withOpacity(0.95)
+                              : Colors.white.withOpacity(0.95),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Container(
+                            constraints: BoxConstraints(
+                              maxWidth: 400,
+                              minHeight: isSmallScreen ? 500 : 600,
                             ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'SIGN UP',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: isDarkMode ? Colors.white : Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
+                            padding: EdgeInsets.all(isSmallScreen ? 20 : 28),
+                            child: Form(
+                              key: _formKey,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Profile image picker
+                                  GestureDetector(
+                                    onTap: isLoading ? null : _pickImage,
+                                    child: Hero(
+                                      tag: 'profile_image',
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.2),
+                                              blurRadius: 10,
+                                              offset: const Offset(0, 5),
+                                            ),
+                                          ],
+                                        ),
+                                        child: CircleAvatar(
+                                          radius: isSmallScreen ? 40 : 50,
+                                          backgroundColor: isDarkMode
+                                              ? Colors.grey[800]
+                                              : Colors.grey[300],
+                                          backgroundImage: _pickedImage != null
+                                              ? FileImage(_pickedImage!)
+                                              : null,
+                                          child: _pickedImage == null
+                                              ? Icon(
+                                                  Icons.add_a_photo,
+                                                  size: isSmallScreen ? 30 : 35,
+                                                  color: isDarkMode
+                                                      ? Colors.white60
+                                                      : Colors.grey[600],
+                                                )
+                                              : null,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 8 : 12),
+                                  
+                                  Text(
+                                    'Add Profile Photo',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDarkMode
+                                          ? Colors.white60
+                                          : Colors.black54,
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 16 : 20),
 
-                          /// Full Name
-                          _buildTextField(
-                            controller: fullNameController,
-                            label: 'Full Name',
-                            isPassword: false,
-                          ),
-                          const SizedBox(height: 12),
+                                  // Title
+                                  Text(
+                                    'SIGN UP',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 24 : 28,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDarkMode ? Colors.white : Colors.black87,
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 20 : 24),
 
-                          _buildTextField(
-                            controller: emailController,
-                            label: 'Email',
-                            isPassword: false,
-                          ),
-                          const SizedBox(height: 12),
+                                  // Form fields with border and margins
+                                  _buildTextField(
+                                    controller: fullNameController,
+                                    label: 'Full Name',
+                                    prefixIcon: Icons.person_outline,
+                                    validator: _validateFullName,
+                                    isSmallScreen: isSmallScreen,
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 12 : 16),
 
-                          _buildTextField(
-                            controller: passwordController,
-                            label: 'Password',
-                            isPassword: true,
-                            isVisible: isPasswordVisible,
-                            onVisibilityChanged: () =>
-                                setState(() => isPasswordVisible = !isPasswordVisible),
-                          ),
-                          const SizedBox(height: 12),
+                                  _buildTextField(
+                                    controller: emailController,
+                                    label: 'Email',
+                                    prefixIcon: Icons.email_outlined,
+                                    validator: _validateEmail,
+                                    keyboardType: TextInputType.emailAddress,
+                                    isSmallScreen: isSmallScreen,
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 12 : 16),
 
-                          _buildTextField(
-                            controller: confirmPasswordController,
-                            label: 'Confirm Password',
-                            isPassword: true,
-                            isVisible: isConfirmPasswordVisible,
-                            onVisibilityChanged: () => setState(
-                                () => isConfirmPasswordVisible = !isConfirmPasswordVisible),
-                          ),
-                          const SizedBox(height: 16),
+                                  _buildTextField(
+                                    controller: passwordController,
+                                    label: 'Password',
+                                    prefixIcon: Icons.lock_outline,
+                                    isPassword: true,
+                                    isVisible: isPasswordVisible,
+                                    validator: _validatePassword,
+                                    onVisibilityChanged: () =>
+                                        setState(() => isPasswordVisible = !isPasswordVisible),
+                                    isSmallScreen: isSmallScreen,
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 12 : 16),
 
-                          ElevatedButton(
-                            onPressed: isLoading ? null : signUpUser,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF0D40DA),
-                              foregroundColor: Colors.white,
-                              minimumSize: const Size(double.infinity, 48),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                  _buildTextField(
+                                    controller: confirmPasswordController,
+                                    label: 'Confirm Password',
+                                    prefixIcon: Icons.lock_outline,
+                                    isPassword: true,
+                                    isVisible: isConfirmPasswordVisible,
+                                    validator: _validateConfirmPassword,
+                                    onVisibilityChanged: () => setState(
+                                        () => isConfirmPasswordVisible = !isConfirmPasswordVisible),
+                                    isSmallScreen: isSmallScreen,
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 20 : 28),
+
+                                  // Sign up button
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: double.infinity,
+                                    height: isSmallScreen ? 48 : 52,
+                                    child: ElevatedButton(
+                                      onPressed: isLoading ? null : signUpUser,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFF0D40DA),
+                                        foregroundColor: Colors.white,
+                                        elevation: 8,
+                                        shadowColor: const Color(0xFF0D40DA).withOpacity(0.4),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: isLoading
+                                          ? const SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : Text(
+                                              'SIGN UP',
+                                              style: TextStyle(
+                                                fontSize: isSmallScreen ? 16 : 18,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 1,
+                                              ),
+                                            ),
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 16 : 20),
+
+                                  // Login link
+                                  TextButton(
+                                    onPressed: isLoading
+                                        ? null
+                                        : () => Navigator.pushReplacementNamed(context, '/login_page'),
+                                    child: RichText(
+                                      text: TextSpan(
+                                        style: TextStyle(
+                                          fontSize: isSmallScreen ? 14 : 15,
+                                          color: isDarkMode ? Colors.white70 : Colors.black87,
+                                        ),
+                                        children: [
+                                          const TextSpan(text: "Already have an account? "),
+                                          TextSpan(
+                                            text: "LOGIN",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: const Color(0xFF0D40DA),
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                  )
-                                : const Text('SIGN UP'),
                           ),
-                          const SizedBox(height: 10),
-                          TextButton(
-                            onPressed: () =>
-                                Navigator.pushReplacementNamed(context, '/login_page'),
-                            child: Text(
-                              "Already have an account? LOGIN",
-                              style: TextStyle(
-                                color: isDarkMode ? Colors.white70 : Colors.black87,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -295,25 +460,76 @@ class _SignupPageState extends State<SignupPage> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
+    required IconData prefixIcon,
+    String? Function(String?)? validator,
     bool isPassword = false,
     bool isVisible = false,
     VoidCallback? onVisibilityChanged,
+    TextInputType? keyboardType,
+    bool isSmallScreen = false,
   }) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: isPassword && !isVisible,
-      style: TextStyle(color: isDarkMode ? Colors.white : Colors.black),
+      validator: validator,
+      keyboardType: keyboardType,
+      style: TextStyle(
+        color: isDarkMode ? Colors.white : Colors.black87,
+        fontSize: isSmallScreen ? 14 : 16,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: isDarkMode ? Colors.white70 : Colors.black87),
+        prefixIcon: Icon(
+          prefixIcon,
+          color: isDarkMode ? Colors.white60 : Colors.grey[600],
+          size: isSmallScreen ? 20 : 24,
+        ),
+        labelStyle: TextStyle(
+          color: isDarkMode ? Colors.white70 : Colors.black54,
+          fontSize: isSmallScreen ? 14 : 16,
+        ),
         filled: true,
-        fillColor: isDarkMode ? Colors.grey[850] : Colors.grey[100],
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        fillColor: isDarkMode
+            ? Colors.grey[850]?.withOpacity(0.8)
+            : Colors.grey[100]?.withOpacity(0.8),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.black, // Black border color
+            width: 2,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(
+            color: Color(0xFF0D40DA),
+            width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red[400]!,
+            width: 1,
+          ),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red[400]!,
+            width: 2,
+          ),
+        ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: isSmallScreen ? 12 : 16,
+        ),
         suffixIcon: isPassword
             ? IconButton(
                 icon: Icon(
                   isVisible ? Icons.visibility : Icons.visibility_off,
-                  color: isDarkMode ? Colors.white70 : Colors.black45,
+                  color: isDarkMode ? Colors.white60 : Colors.grey[600],
+                  size: isSmallScreen ? 20 : 24,
                 ),
                 onPressed: onVisibilityChanged,
               )
