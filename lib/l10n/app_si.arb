@@ -93,5 +93,9 @@
   "searchBySerialNumber": "අනුඅංකය මගින් සෙවීම",
   "enterSerialNumber": "අනුඅංකය ඇතුළත් කරන්න",
   "noResultsFound": "ප්‍රතිඵල කිසිවක් හමු වුණි",
-  "enterNICNumber": "ජාතික හැඳුනුම්පත් අංකය ඇතුළත් කරන්න"
+  "enterNICNumber": "ජාතික හැඳුනුම්පත් අංකය ඇතුළත් කරන්න",
+  "publicHealth": "පොදු සෞඛ්‍ය",
+  "hospitalBaseCare": "හෝස්පිටල් පදනම් කාමර සේවා",
+  "yourHealthWellBeing": "ඔබේ සෞඛ්‍ය හා යහපත",
+  "welcomeToHealthMinistry": "සෞඛ්‍ය අමාත්‍යංශයට ආයුබෝවන්"
 }

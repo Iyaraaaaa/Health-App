@@ -302,4 +302,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get enterNICNumber => 'Enter NIC Number';
+
+  @override
+  String get publicHealth => 'Public Health';
+
+  @override
+  String get hospitalBaseCare => 'Hospital Base Care';
+
+  @override
+  String get yourHealthWellBeing => 'Your Health & Well Being';
+
+  @override
+  String get welcomeToHealthMinistry => 'Welcome to Health Ministry';
 }

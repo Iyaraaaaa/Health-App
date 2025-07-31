@@ -94,5 +94,9 @@
   "searchBySerialNumber": "தொடர் எண்முறை மூலம் தேடல்",
   "enterSerialNumber": "தொடர் எண் உள்ளிடவும்",
   "noResultsFound": "எந்த முடிவுகளும் கிடைக்கவில்லை",
-  "enterNICNumber": "தேசிய அடையாள அட்டை எண்ணை உள்ளிடவும்"
+  "enterNICNumber": "தேசிய அடையாள அட்டை எண்ணை உள்ளிடவும்",
+  "publicHealth": "பொது சுகாதாரம்",
+  "hospitalBaseCare": "மருத்துவ முகாமின் அடிப்படை பராமரிப்பு",
+  "yourHealthWellBeing": "உங்கள் சுகாதாரம் மற்றும் நலம்",
+  "welcomeToHealthMinistry": "சுகாதார அமைச்சருக்கு வரவேற்கின்றேன்"
 }

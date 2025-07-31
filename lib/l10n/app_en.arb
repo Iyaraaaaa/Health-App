@@ -93,5 +93,9 @@
   "searchBySerialNumber": "Search by Serial Number",
   "enterSerialNumber": "Enter Serial Number",
   "noResultsFound": "No Results Found",
-  "enterNICNumber": "Enter NIC Number"
+  "enterNICNumber": "Enter NIC Number",
+  "publicHealth": "Public Health",
+  "hospitalBaseCare": "Hospital Base Care",
+  "yourHealthWellBeing": "Your Health & Well Being",
+  "welcomeToHealthMinistry": "Welcome to Health Ministry"
 }

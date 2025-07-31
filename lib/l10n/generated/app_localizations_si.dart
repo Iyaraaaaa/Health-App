@@ -301,4 +301,16 @@ class AppLocalizationsSi extends AppLocalizations {
 
   @override
   String get enterNICNumber => 'ජාතික හැඳුනුම්පත් අංකය ඇතුළත් කරන්න';
+
+  @override
+  String get publicHealth => 'පොදු සෞඛ්‍ය';
+
+  @override
+  String get hospitalBaseCare => 'හෝස්පිටල් පදනම් කාමර සේවා';
+
+  @override
+  String get yourHealthWellBeing => 'ඔබේ සෞඛ්‍ය හා යහපත';
+
+  @override
+  String get welcomeToHealthMinistry => 'සෞඛ්‍ය අමාත්‍යංශයට ආයුබෝවන්';
 }

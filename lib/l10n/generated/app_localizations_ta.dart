@@ -303,4 +303,16 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get enterNICNumber => 'தேசிய அடையாள அட்டை எண்ணை உள்ளிடவும்';
+
+  @override
+  String get publicHealth => 'பொது சுகாதாரம்';
+
+  @override
+  String get hospitalBaseCare => 'மருத்துவ முகாமின் அடிப்படை பராமரிப்பு';
+
+  @override
+  String get yourHealthWellBeing => 'உங்கள் சுகாதாரம் மற்றும் நலம்';
+
+  @override
+  String get welcomeToHealthMinistry => 'சுகாதார அமைச்சருக்கு வரவேற்கின்றேன்';
 }

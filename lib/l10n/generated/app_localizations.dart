@@ -663,6 +663,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter NIC Number'**
   String get enterNICNumber;
+
+  /// No description provided for @publicHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Health'**
+  String get publicHealth;
+
+  /// No description provided for @hospitalBaseCare.
+  ///
+  /// In en, this message translates to:
+  /// **'Hospital Base Care'**
+  String get hospitalBaseCare;
+
+  /// No description provided for @yourHealthWellBeing.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Health & Well Being'**
+  String get yourHealthWellBeing;
+
+  /// No description provided for @welcomeToHealthMinistry.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Health Ministry'**
+  String get welcomeToHealthMinistry;
 }
 
 class _AppLocalizationsDelegate
