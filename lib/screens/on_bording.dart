@@ -337,7 +337,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
           _buildControlButton(
             text: "Skip",
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/login_page');
+              Navigator.pushReplacementNamed(context, '/login');
             },
             isPrimary: false,
           ),

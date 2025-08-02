@@ -272,7 +272,7 @@ class _ForgetPasswordPageState extends State<ForgetPasswordPage> {
                                   TextButton(
                                     onPressed: isLoading
                                         ? null
-                                        : () => Navigator.pushReplacementNamed(context, '/login_page'),
+                                        : () => Navigator.pushReplacementNamed(context, '/login'),
                                     child: RichText(
                                       text: TextSpan(
                                         style: TextStyle(

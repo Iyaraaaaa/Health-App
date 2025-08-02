@@ -1,98 +1,59 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as path;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
-class SignupPage extends StatefulWidget {
-  static Route route() => MaterialPageRoute(
-        builder: (context) => const SignupPage(),
-      );
+class SignUpPage extends StatefulWidget {
+  final bool isDarkMode;
+  final Future<void> Function(bool isDark) onThemeChanged;
 
-  const SignupPage({super.key});
+  const SignUpPage({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
 
   @override
-  State<SignupPage> createState() => _SignupPageState();
+  State<SignUpPage> createState() => _SignUpPageState();
 }
 
-class _SignupPageState extends State<SignupPage> {
+class _SignUpPageState extends State<SignUpPage> {
   final _formKey = GlobalKey<FormState>();
-  final fullNameController = TextEditingController();
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
+  bool isLoading = false;
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
-  bool isDarkMode = false;
-  bool isLoading = false;
+  bool isEmailVerified = false;
+  late bool isDarkMode;
 
-  File? _pickedImage;
-  final ImagePicker _picker = ImagePicker();
+  @override
+  void initState() {
+    super.initState();
+    isDarkMode = widget.isDarkMode;
+  }
 
   @override
   void dispose() {
-    fullNameController.dispose();
+    nameController.dispose();
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickImage() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 600,
-        imageQuality: 80,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _pickedImage = File(pickedFile.path);
-        });
-      }
-    } catch (e) {
-      _showErrorSnackBar('Failed to pick image: $e');
-    }
+  Future<void> _toggleDarkMode() async {
+    setState(() {
+      isDarkMode = !isDarkMode;
+    });
+    await widget.onThemeChanged(isDarkMode);
   }
 
-  Future<String?> _uploadImage(String userId) async {
-    if (_pickedImage == null) return null;
-
-    try {
-      final storageRef = FirebaseStorage.instance.ref();
-      final imageRef = storageRef.child(
-        'profile_images/$userId${path.extension(_pickedImage!.path)}',
-      );
-      await imageRef.putFile(_pickedImage!);
-      return await imageRef.getDownloadURL();
-    } catch (e) {
-      print('Error uploading image: $e');
-      return null;
-    }
-  }
-
-  Future<void> _saveUserData(User user, String? imageUrl) async {
-    try {
-      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-        'id': user.uid,
-        'email': user.email,
-        'fullName': fullNameController.text.trim(),
-        'profileImage': imageUrl,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      print('Error saving user data: $e');
-      rethrow;
-    }
-  }
-
-  String? _validateFullName(String? value) {
+  String? _validateName(String? value) {
     if (value == null || value.trim().isEmpty) {
-      return 'Please enter your full name';
+      return 'Please enter your name';
     }
     if (value.trim().length < 2) {
       return 'Name must be at least 2 characters';
@@ -113,7 +74,7 @@ class _SignupPageState extends State<SignupPage> {
 
   String? _validatePassword(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a password';
+      return 'Please enter your password';
     }
     if (value.length < 6) {
       return 'Password must be at least 6 characters';
@@ -131,7 +92,7 @@ class _SignupPageState extends State<SignupPage> {
     return null;
   }
 
-  Future<void> signUpUser() async {
+  Future<void> _sendVerificationEmail() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -145,29 +106,72 @@ class _SignupPageState extends State<SignupPage> {
         password: passwordController.text.trim(),
       );
 
-      String? imageUrl = await _uploadImage(userCredential.user!.uid);
-      await _saveUserData(userCredential.user!, imageUrl);
+      await userCredential.user!.updateDisplayName(nameController.text.trim());
+      await userCredential.user!.sendEmailVerification();
 
-      _showSuccessSnackBar('Account created successfully!');
-      Navigator.pushReplacementNamed(context, '/login');
+      _showSuccessSnackBar('Verification email sent! Please check your inbox.');
+      
+      // Start checking for email verification
+      _startEmailVerificationCheck();
+      
     } on FirebaseAuthException catch (e) {
-      String errorMessage = 'An error occurred. Please try again.';
-      if (e.code == 'weak-password') {
-        errorMessage = 'The password is too weak.';
-      } else if (e.code == 'email-already-in-use') {
-        errorMessage = 'The email is already in use.';
+      String errorMessage = "Registration Failed";
+      if (e.code == 'email-already-in-use') {
+        errorMessage = "Email already in use. Please use a different email.";
+      } else if (e.code == 'weak-password') {
+        errorMessage = "Password is too weak. Please choose a stronger password.";
       } else if (e.code == 'invalid-email') {
-        errorMessage = 'The email address is invalid.';
+        errorMessage = "Invalid email format.";
+      } else if (e.code == 'operation-not-allowed') {
+        errorMessage = "Email/password accounts are not enabled.";
       }
       _showErrorSnackBar(errorMessage);
     } catch (e) {
-      _showErrorSnackBar('An unexpected error occurred');
+      _showErrorSnackBar('An unexpected error occurred. Please try again.');
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  void _startEmailVerificationCheck() {
+    // Check every 3 seconds if email is verified
+    Stream.periodic(const Duration(seconds: 3)).listen((timer) async {
+      await FirebaseAuth.instance.currentUser?.reload();
+      final user = FirebaseAuth.instance.currentUser;
+      
+      if (user != null && user.emailVerified) {
+        setState(() {
+          isEmailVerified = true;
+        });
+        _showSuccessSnackBar('Email verified successfully!');
+      }
+    });
+  }
+
+  Future<void> _registerUser() async {
+    if (!isEmailVerified) {
+      _showErrorSnackBar('Please verify your email first.');
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      // User is already created and verified, just navigate to home
+      _showSuccessSnackBar('Registration completed successfully!');
+      
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      _showErrorSnackBar('An unexpected error occurred. Please try again.');
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -180,6 +184,7 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -218,7 +223,6 @@ class _SignupPageState extends State<SignupPage> {
         child: SafeArea(
           child: Stack(
             children: [
-              // Theme toggle button
               Positioned(
                 top: 10,
                 right: 20,
@@ -233,16 +237,15 @@ class _SignupPageState extends State<SignupPage> {
                       color: isDarkMode ? Colors.amber : Colors.white,
                       size: 24,
                     ),
-                    onPressed: () => setState(() => isDarkMode = !isDarkMode),
+                    onPressed: _toggleDarkMode,
                   ),
                 ),
               ),
-              // Main content
               Positioned.fill(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     horizontal: screenWidth > 600 ? screenWidth * 0.25 : 20,
-                    vertical: isSmallScreen ? 10 : 20,
+                    vertical: isSmallScreen ? 20 : 40,
                   ),
                   child: Center(
                     child: SingleChildScrollView(
@@ -262,65 +265,14 @@ class _SignupPageState extends State<SignupPage> {
                           child: Container(
                             constraints: BoxConstraints(
                               maxWidth: 400,
-                              minHeight: isSmallScreen ? 500 : 600,
+                              minHeight: isSmallScreen ? 500 : 580,
                             ),
-                            padding: EdgeInsets.all(isSmallScreen ? 20 : 28),
+                            padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
                             child: Form(
                               key: _formKey,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // Profile image picker
-                                  GestureDetector(
-                                    onTap: isLoading ? null : _pickImage,
-                                    child: Hero(
-                                      tag: 'profile_image',
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(0.2),
-                                              blurRadius: 10,
-                                              offset: const Offset(0, 5),
-                                            ),
-                                          ],
-                                        ),
-                                        child: CircleAvatar(
-                                          radius: isSmallScreen ? 40 : 50,
-                                          backgroundColor: isDarkMode
-                                              ? Colors.grey[800]
-                                              : Colors.grey[300],
-                                          backgroundImage: _pickedImage != null
-                                              ? FileImage(_pickedImage!)
-                                              : null,
-                                          child: _pickedImage == null
-                                              ? Icon(
-                                                  Icons.add_a_photo,
-                                                  size: isSmallScreen ? 30 : 35,
-                                                  color: isDarkMode
-                                                      ? Colors.white60
-                                                      : Colors.grey[600],
-                                                )
-                                              : null,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(height: isSmallScreen ? 8 : 12),
-                                  
-                                  Text(
-                                    'Add Profile Photo',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDarkMode
-                                          ? Colors.white60
-                                          : Colors.black54,
-                                    ),
-                                  ),
-                                  SizedBox(height: isSmallScreen ? 16 : 20),
-
-                                  // Title
                                   Text(
                                     'SIGN UP',
                                     style: TextStyle(
@@ -330,17 +282,24 @@ class _SignupPageState extends State<SignupPage> {
                                       letterSpacing: 1.5,
                                     ),
                                   ),
-                                  SizedBox(height: isSmallScreen ? 20 : 24),
+                                  SizedBox(height: isSmallScreen ? 4 : 8),
+                                  Text(
+                                    'Create your account',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 14 : 16,
+                                      color: isDarkMode ? Colors.white60 : Colors.black54,
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 24 : 32),
 
-                                  // Form fields with border and margins
                                   _buildTextField(
-                                    controller: fullNameController,
+                                    controller: nameController,
                                     label: 'Full Name',
                                     prefixIcon: Icons.person_outline,
-                                    validator: _validateFullName,
+                                    validator: _validateName,
                                     isSmallScreen: isSmallScreen,
                                   ),
-                                  SizedBox(height: isSmallScreen ? 12 : 16),
+                                  SizedBox(height: isSmallScreen ? 16 : 20),
 
                                   _buildTextField(
                                     controller: emailController,
@@ -350,7 +309,7 @@ class _SignupPageState extends State<SignupPage> {
                                     keyboardType: TextInputType.emailAddress,
                                     isSmallScreen: isSmallScreen,
                                   ),
-                                  SizedBox(height: isSmallScreen ? 12 : 16),
+                                  SizedBox(height: isSmallScreen ? 16 : 20),
 
                                   _buildTextField(
                                     controller: passwordController,
@@ -363,7 +322,7 @@ class _SignupPageState extends State<SignupPage> {
                                         setState(() => isPasswordVisible = !isPasswordVisible),
                                     isSmallScreen: isSmallScreen,
                                   ),
-                                  SizedBox(height: isSmallScreen ? 12 : 16),
+                                  SizedBox(height: isSmallScreen ? 16 : 20),
 
                                   _buildTextField(
                                     controller: confirmPasswordController,
@@ -372,24 +331,30 @@ class _SignupPageState extends State<SignupPage> {
                                     isPassword: true,
                                     isVisible: isConfirmPasswordVisible,
                                     validator: _validateConfirmPassword,
-                                    onVisibilityChanged: () => setState(
-                                        () => isConfirmPasswordVisible = !isConfirmPasswordVisible),
+                                    onVisibilityChanged: () =>
+                                        setState(() => isConfirmPasswordVisible = !isConfirmPasswordVisible),
                                     isSmallScreen: isSmallScreen,
                                   ),
-                                  SizedBox(height: isSmallScreen ? 20 : 28),
+                                  SizedBox(height: isSmallScreen ? 24 : 32),
 
-                                  // Sign up button
+                                  // Verify Email Button or Sign Up Button
                                   AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
                                     width: double.infinity,
                                     height: isSmallScreen ? 48 : 52,
                                     child: ElevatedButton(
-                                      onPressed: isLoading ? null : signUpUser,
+                                      onPressed: isLoading 
+                                          ? null 
+                                          : (isEmailVerified ? _registerUser : _sendVerificationEmail),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF0D40DA),
+                                        backgroundColor: isEmailVerified 
+                                            ? Colors.green[600]
+                                            : const Color(0xFF0D40DA),
                                         foregroundColor: Colors.white,
                                         elevation: 8,
-                                        shadowColor: const Color(0xFF0D40DA).withOpacity(0.4),
+                                        shadowColor: (isEmailVerified 
+                                            ? Colors.green[600] 
+                                            : const Color(0xFF0D40DA))?.withOpacity(0.4),
                                         shape: RoundedRectangleBorder(
                                           borderRadius: BorderRadius.circular(12),
                                         ),
@@ -403,23 +368,116 @@ class _SignupPageState extends State<SignupPage> {
                                                 strokeWidth: 2,
                                               ),
                                             )
-                                          : Text(
-                                              'SIGN UP',
-                                              style: TextStyle(
-                                                fontSize: isSmallScreen ? 16 : 18,
-                                                fontWeight: FontWeight.bold,
-                                                letterSpacing: 1,
-                                              ),
+                                          : Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  isEmailVerified 
+                                                      ? Icons.check_circle_outline
+                                                      : Icons.email_outlined,
+                                                  size: isSmallScreen ? 20 : 24,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  isEmailVerified ? 'SIGN UP' : 'VERIFY EMAIL',
+                                                  style: TextStyle(
+                                                    fontSize: isSmallScreen ? 16 : 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 1,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                     ),
                                   ),
-                                  SizedBox(height: isSmallScreen ? 16 : 20),
+                                  SizedBox(height: isSmallScreen ? 16 : 24),
 
-                                  // Login link
+                                  if (!isEmailVerified)
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: isDarkMode 
+                                            ? Colors.blue[900]?.withOpacity(0.3)
+                                            : Colors.blue[50],
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isDarkMode 
+                                              ? Colors.blue[400]!
+                                              : Colors.blue[200]!,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.info_outline,
+                                            color: isDarkMode 
+                                                ? Colors.blue[300]
+                                                : Colors.blue[600],
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Click the verification link sent to your email',
+                                              style: TextStyle(
+                                                fontSize: isSmallScreen ? 12 : 14,
+                                                color: isDarkMode 
+                                                    ? Colors.blue[300]
+                                                    : Colors.blue[700],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                  if (isEmailVerified)
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: isDarkMode 
+                                            ? Colors.green[900]?.withOpacity(0.3)
+                                            : Colors.green[50],
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isDarkMode 
+                                              ? Colors.green[400]!
+                                              : Colors.green[200]!,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.check_circle,
+                                            color: isDarkMode 
+                                                ? Colors.green[300]
+                                                : Colors.green[600],
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              'Email verified! You can now complete registration',
+                                              style: TextStyle(
+                                                fontSize: isSmallScreen ? 12 : 14,
+                                                color: isDarkMode 
+                                                    ? Colors.green[300]
+                                                    : Colors.green[700],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                  SizedBox(height: isSmallScreen ? 16 : 24),
+
                                   TextButton(
                                     onPressed: isLoading
                                         ? null
-                                        : () => Navigator.pushReplacementNamed(context, '/login_page'),
+                                        : () => Navigator.pushReplacementNamed(context, '/login'),
                                     child: RichText(
                                       text: TextSpan(
                                         style: TextStyle(
@@ -429,7 +487,7 @@ class _SignupPageState extends State<SignupPage> {
                                         children: [
                                           const TextSpan(text: "Already have an account? "),
                                           TextSpan(
-                                            text: "LOGIN",
+                                            text: "SIGN IN",
                                             style: TextStyle(
                                               fontWeight: FontWeight.bold,
                                               color: const Color(0xFF0D40DA),
@@ -489,13 +547,13 @@ class _SignupPageState extends State<SignupPage> {
           fontSize: isSmallScreen ? 14 : 16,
         ),
         filled: true,
-        fillColor: isDarkMode
-            ? Colors.grey[850]?.withOpacity(0.8)
+        fillColor: isDarkMode 
+            ? Colors.grey[850]?.withOpacity(0.8) 
             : Colors.grey[100]?.withOpacity(0.8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.black, // Black border color
+          borderSide: const BorderSide(
+            color: Colors.black,
             width: 2,
           ),
         ),
@@ -509,7 +567,7 @@ class _SignupPageState extends State<SignupPage> {
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: Colors.red[400]!,
+            color: Colors.red[400]!, 
             width: 1,
           ),
         ),

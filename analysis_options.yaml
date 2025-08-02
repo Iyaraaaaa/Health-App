@@ -11,6 +11,7 @@ analyzer:
   errors:
     unused_import: ignore
     avoid_types_as_parameter_names: ignore
+    depend_on_referenced_packages: ignore
 include: package:flutter_lints/flutter.yaml
 
 

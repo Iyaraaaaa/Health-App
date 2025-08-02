@@ -611,7 +611,16 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
           _buildDrawerItem(Icons.phone, loc.contactUs ?? 'Contact Us', Colors.blue, const ContactUsPage()),
           _buildDrawerItem(Icons.logout, loc.logOut ?? 'Log Out',
               isDark ? const Color.fromARGB(255, 144, 231, 163) : const Color.fromARGB(255, 198, 117, 174),
-              const LoginPage(),
+              LoginPage(
+                onThemeChanged: (bool value) async {
+                  widget.onThemeChanged(value);
+                },
+                onGoogleSignIn: () async {
+                  // Provide your Google sign-in logic here
+                  return;
+                },
+                isDarkMode: widget.isDarkMode,
+              ),
               isLogout: true),
         ],
       ),

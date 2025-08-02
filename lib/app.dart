@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:health_project/l10n/generated/app_localizations.dart';
 import 'package:health_project/screens/home_page.dart';
+// Make sure the file 'home_page.dart' exists in 'lib/screens' and contains a 'HomePage' widget.
 
 void main() {
   runApp(const MyApp());

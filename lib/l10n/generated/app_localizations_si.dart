@@ -9,19 +9,19 @@ class AppLocalizationsSi extends AppLocalizations {
   AppLocalizationsSi([String locale = 'si']) : super(locale);
 
   @override
-  String get healthStaffAffirmation => 'සෞඛ්‍ය කාර්ය මණ්ඩල ස්ථිර කිරීම';
+  String get healthStaffAffirmation => 'සෞඛ්‍ය සේවක තහවුරු කිරීම';
 
   @override
-  String get staffDetails => 'කාර්ය මණ්ඩල විස්තර';
+  String get staffDetails => 'කාර්ය මණ්ඩලයේ විස්තර';
 
   @override
-  String get serialNumber => 'අනුඅංකය';
+  String get serialNumber => 'අනුක්රමික අංකය';
 
   @override
-  String get officerName => 'අධිකාරි නම';
+  String get officerName => 'නිලධාරිගේ නම';
 
   @override
-  String get nicNumber => 'එන්.අයි.සී. අංකය';
+  String get nicNumber => 'ජාතික හැඳුනුම්පත් අංකය';
 
   @override
   String get designation => 'තනතුර';
@@ -30,46 +30,46 @@ class AppLocalizationsSi extends AppLocalizations {
   String get serviceStation => 'සේවා ස්ථානය';
 
   @override
-  String get datesSection => 'දිනයන් කොටස';
+  String get datesSection => 'දින අංශය';
 
   @override
-  String get letterDate => 'ලේඛන දිනය';
+  String get letterDate => 'ලිපියේ දිනය';
 
   @override
-  String get dateConfirmed => 'ඉස්ථිර කරන ලද දිනය';
+  String get dateConfirmed => 'තහවුරු කළ දිනය';
 
   @override
-  String get responsibleOfficer => 'ප්‍රතිචාරක අධිකාරි';
+  String get responsibleOfficer => 'උත්තරවාදී නිලධාරියා';
 
   @override
   String get fileNumber => 'ගොනු අංකය';
 
   @override
-  String get deficiencyTracking => 'අවකාශය අනුගමනය';
+  String get deficiencyTracking => 'ඌනතා ග්‍රහණය';
 
   @override
-  String get defNotifiedDate => 'අවකාශය නිවේදනය කරන ලද දිනය';
+  String get defNotifiedDate => 'ඌනතා දැනුම් දුන් දිනය';
 
   @override
-  String get defCorrectedDate => 'අවකාශය නිවැරදි කරන ලද දිනය';
+  String get defCorrectedDate => 'ඌනතා නිරාකරණය කළ දිනය';
 
   @override
-  String get approvalSection => 'අනුමත කොටස';
+  String get approvalSection => 'අනුමත කිරීමේ අංශය';
 
   @override
-  String get sentDate => 'පැවරුම දිනය';
+  String get sentDate => 'යැවූ දිනය';
 
   @override
-  String get approvalGrantedDate => 'අනුමතිය ලබා දුන් දිනය';
+  String get approvalGrantedDate => 'අනුමැතිය ලබා දුන් දිනය';
 
   @override
-  String get approvalNotifiedDate => 'අනුමතිය නිවේදනය කරන ලද දිනය';
+  String get approvalNotifiedDate => 'අනුමැතිය දැනුම් දුන් දිනය';
 
   @override
-  String get submitForm => 'රූපය භාර දෙන්න';
+  String get submitForm => 'පෝරමය ඉදිරිපත් කරන්න';
 
   @override
-  String get requiredField => 'මෙම ක්ෂේත්‍රය අනිවාර්ය වේ.';
+  String get requiredField => 'මෙම ක්ෂේත්‍රය අවශ්‍ය වේ.';
 
   @override
   String get selectDate => 'කරුණාකර දිනයක් තෝරන්න.';
@@ -84,24 +84,24 @@ class AppLocalizationsSi extends AppLocalizations {
   String get success => 'සාර්ථකයි';
 
   @override
-  String get formSubmittedSuccess => 'රූපය සාර්ථකව භාර දී ඇත.';
+  String get formSubmittedSuccess => 'පෝරමය සාර්ථකව ඉදිරිපත් කරන ලදී.';
 
   @override
-  String get ok => 'ඔව්';
+  String get ok => 'හරි';
 
   @override
-  String get generalInquiries => 'සාමාන්‍ය විමසුම්';
+  String get generalInquiries => 'සාමාන්‍ය විමසීම්';
 
   @override
   String get contactDetails => 'සම්බන්ධතා විස්තර';
 
   @override
   String get contactText =>
-      'ශ්‍රී ලංකා සෞඛ්‍ය අමාත්‍යාංශය වෙත ඔබේ ආරෝගිකතාවය ගැන ස්තුතියි. පහත දැක්වෙනවට අමතර සම්බන්ධතා විස්තර ඇති අතර, එම විද්‍යුත් ලිපිනයක් හෝ දුරකථන අංකයක් සොයා ගත හැකි වෙබ් අඩවියේ සෙවීමේ විශේෂාංග භාවිතා කරන්න.';
+      'ශ්‍රී ලංකා සෞඛ්‍ය අමාත්‍යාංශය සම්බන්ධ කර ගැනීමට ඔබගේ උනන්දුවට ස්තූතියි. පහත සඳහන් අංශ සඳහා සම්බන්ධතා විස්තර ඇත. විද්‍යුත් තැපැල් ලිපිනයක් හෝ දුරකථන අංකයක් සොයා ගැනීමට පහත ඇති වෙබ් අඩවි සෙවුම් විශේෂාංගය භාවිතා කරන්න.';
 
   @override
   String get address =>
-      'සුවාසිරිපය, අංක 385, රෙව. බද්දෙගම විමලාවංස තේරෝ මාවත, කොළඹ 10, ශ්‍රී ලංකා.';
+      'සුවසිරිපාය, අංක 385, පූජ්‍ය බද්දේගම විමලවංශ හිමි මාවත, කොළඹ 10, ශ්‍රී ලංකාව.';
 
   @override
   String get phone =>
@@ -111,67 +111,68 @@ class AppLocalizationsSi extends AppLocalizations {
   String get email => 'info(at)health.gov.lk';
 
   @override
-  String get locationOnMap => 'නැවත සලස්වන ස්ථානය';
+  String get locationOnMap => 'සිතියමේ පිහිටීම';
 
   @override
-  String get appointmentReminder => 'අප්පෝයින්ට් මතකය';
+  String get appointmentReminder => 'නියමිත සාකච්ඡාවට අමතක නොකරන්න';
 
   @override
-  String get appointmentMessage => 'ඔබට 10:30AMදී ඩො. ස්මිත් සමඟ කටයුතු ඇත.';
+  String get appointmentMessage =>
+      'ඔබට Dr. Smith සමඟ උදේ 10.30ට නියමිත සාකච්ඡාවක් ඇත.';
 
   @override
-  String get paymentConfirmation => 'ගෙවීමේ ස්ථිර කිරීම';
+  String get paymentConfirmation => 'ගෙවීම් තහවුරු කිරීම';
 
   @override
-  String get paymentMessage => 'ඔබේ උපදෙස් සඳහා ගෙවීම ලබන ලදී.';
+  String get paymentMessage => 'පරීක්ෂණය සඳහා ඔබගේ ගෙවීම ලබා ගෙන ඇත.';
 
   @override
-  String get newDoctorAdded => 'නව වෛද්‍යවරයා ඇතුළත් කළා';
+  String get newDoctorAdded => 'නව වෛද්‍යවරයා එකතු කරන ලදී';
 
   @override
   String get doctorMessage =>
-      'ඩො. ජේන් ඩෝ ඔබගේ ප්‍රියතම වෛද්‍යවරයා ලෙස ඇතුළත් කළා.';
+      'Dr. Jane Doe ඔබගේ ප්‍රියතම ලැයිස්තුවට එකතු කරන ලදී.';
 
   @override
   String timeAgo(Object time) {
-    return '$time පෙර';
+    return '$time කලින්';
   }
 
   @override
-  String get privacyPolicy => 'පෞද්ගලිකතා ප්‍රතිපත්තිය';
+  String get privacyPolicy => 'පෞද්ගලිකත්ව ප්‍රතිපත්තිය';
 
   @override
   String get introduction => '1. හැඳින්වීම';
 
   @override
   String get introductionContent =>
-      'මෙය පෞද්ගලිකතා ප්‍රතිපත්තියේ හැඳින්වීමයි.\n\nඅපි ඔබේ පෞද්ගලිකතාවය වැදගත් බව පවසන්නෙමු, සහ ඔබේ දත්ත එකතු කරන ආකාරය සහ භාවිතය පැහැදිලි කරනවා.';
+      'මෙය පෞද්ගලිකත්ව ප්‍රතිපත්තියේ හැඳින්වීමයි.\n\nඅපි ඔබගේ පෞද්ගලිකත්වය වටිනා කරන අතර ඔබගේ දත්ත රැස් කර භාවිතා කරන ආකාරය පැහැදිලි කරමු.';
 
   @override
-  String get personalData => '2. අපි එකතු කරන පෞද්ගලික දත්ත';
+  String get personalData => '2. අප රැස් කරන පෞද්ගලික දත්ත';
 
   @override
   String get personalDataContent =>
-      'අපි එකතු කරන දත්ත පිළිබඳ විස්තර, ඔබේ නම, විද්‍යුත් ලිපිනය සහ භාවිතා කරන දත්ත.\n\nමෙම දත්ත අපි සේවාවන් වැඩි දියුණු කිරීම සහ අධික ප්‍රයෝජනයක් ලබා දීමට උපකාරී වේ.';
+      'ඔබගේ නම, විද්‍යුත් තැපෑල සහ භාවිත දත්ත ඇතුළත් අප රැස් කරන දත්ත පිළිබඳ විස්තර.\n\nමෙම දත්ත අපගේ සේවාවන් වැඩි දියුණු කිරීමට සහ හොඳ පරිශීලක අත්දැකීමක් ලබා දීමට උපකාරී වේ.';
 
   @override
-  String get cookiePolicy => '3. කුකි ප්‍රතිපත්තිය';
+  String get cookiePolicy => '3. කුකී ප්‍රතිපත්තිය';
 
   @override
   String get cookiePolicyContent =>
-      'කුකි මොකක්ද?\n\nකුකි යනු ඔබගේ උපාංගය මත ගබඩා කරන කුඩා ගොනුයකි. අපි භාවිතා කරන කුකිවලින් පරිශීලක අත්දැකීම වැඩි දියුණු කරනවා, නමුත් අපි ඔබගේ පෞද්ගලිකතාවයට ගරු කරමින් ඒවා අක්‍රීය කිරීමට විකල්පයක් ලබා දෙනවා.';
+      'කුකී යනු කුමක්ද?\n\nකුකී යනු ඔබගේ උපාංගයේ ගබඩා කර ඇති කුඩා ගොනුවකි. අපි පරිශීලක අත්දැකීම වැඩි දියුණු කිරීම සඳහා කුකී භාවිතා කරන නමුත් අපි ඔබගේ පෞද්ගලිකත්වය ගරු කර ඒවා අක්‍රිය කිරීමේ විකල්පයක් සපයමු.';
 
   @override
-  String get homeContactUs => 'මුල් පිටුව / අප හා සම්බන්ධ වන්න';
+  String get homeContactUs => 'මුල් පිටුව / අපව සම්බන්ධ කරගන්න';
 
   @override
-  String get contactUs => 'අප හා සම්බන්ධ වන්න';
+  String get contactUs => 'අපව සම්බන්ධ කරගන්න';
 
   @override
   String get home => 'මුල් පිටුව';
 
   @override
-  String get affirmation => 'ස්ථිර කිරීම';
+  String get affirmation => 'තහවුරු කිරීම';
 
   @override
   String get search => 'සොයන්න';
@@ -180,7 +181,7 @@ class AppLocalizationsSi extends AppLocalizations {
   String get more => 'තවත්';
 
   @override
-  String get logOut => 'පිටවන්න';
+  String get logOut => 'පිටවීම';
 
   @override
   String get ministryName => 'සෞඛ්‍ය අමාත්‍යාංශය';
@@ -189,115 +190,114 @@ class AppLocalizationsSi extends AppLocalizations {
   String get services => 'සේවාවන්';
 
   @override
-  String get news => 'සංස්කෘත';
+  String get news => 'පුවත්';
 
   @override
-  String get emergency => 'ඉක්මනින්';
+  String get emergency => 'හදිසි';
 
   @override
-  String get about => 'ඉතිහාසය';
+  String get about => 'පිළිබඳව';
 
   @override
-  String get settings => 'අවිස්සීම';
+  String get settings => 'සැකසුම්';
 
   @override
-  String get emergencyCalled => 'ඉක්මනියන්ට ඇමතුම පවත්වා ඇත';
+  String get emergencyCalled => 'හදිසි ඇමතුමක් කරන ලදී';
 
   @override
   String get selected => 'තෝරාගත් අයිතමය';
 
   @override
-  String get privacy => 'පෞද්ගලිකතා';
+  String get privacy => 'පෞද්ගලිකත්වය';
 
   @override
   String get changeLanguage => 'භාෂාව වෙනස් කරන්න';
 
   @override
-  String get switchToLightMode => 'ලයිට් මෝඩ් එකට මාරු කරන්න';
+  String get switchToLightMode => 'සැහැල්ලු ප්‍රකාරයට මාරු වන්න';
 
   @override
-  String get switchToDarkMode => 'ඩාර්ක් මෝඩ් එකට මාරු කරන්න';
+  String get switchToDarkMode => 'අඳුරු ප්‍රකාරයට මාරු වන්න';
 
   @override
   String get ourVision => 'අපගේ දැක්ම';
 
   @override
-  String get ourMission => 'අපගේ කාර්යය';
+  String get ourMission => 'අපගේ මෙහෙවර';
 
   @override
   String get missionText =>
-      'ශ්‍රී ලංකාවෙහි ජනතාවට සම්පූර්ණ, සෞඛ්‍යයෝග්‍ය, හානිකර සහ සාධාරණ සෞඛ්‍ය සේවා ලබාදීමේ සංකල්පය අරමුණු කරගෙන අපි සාමාජිකයකු බවට පත්වීමට සත්‍ය වෙමු.';
+      'ශ්‍රී ලංකාවේ සමාජීය හා ආර්ථික සංවර්ධනයට දායක වීම සඳහා උසස් ගුණාත්මක භාවයෙන් යුත් වළක්වා ගැනීමේ, සුව කිරීමේ හා ප්‍රතිකාර සේවා මගින් ජනතාවට ප්‍රවේශ විය හැකි උපරිම සෞඛ්‍ය මට්ටම් ලබා ගැනීම.';
 
   @override
-  String get readMore => 'තව කියවන්න';
+  String get readMore => 'තවත් කියවන්න';
 
   @override
-  String get ministryLeadership => 'අමාත්‍යාංශ නායකත්වය';
+  String get ministryLeadership => 'අමාත්‍යාංශයේ නායකත්වය';
 
   @override
-  String get minister => 'සෞඛ්‍ය සහ මාධ්‍ය අමාත්‍ය';
+  String get minister => 'සෞඛ්‍ය හා ජනමාධ්‍ය අමාත්‍ය';
 
   @override
-  String get deputyMinister => 'සෞඛ්‍ය සහ මාධ්‍ය උප අමාත්‍ය';
+  String get deputyMinister => 'සෞඛ්‍ය හා ජනමාධ්‍ය උප අමාත්‍ය';
 
   @override
-  String get secretary => 'සෞඛ්‍ය අමාත්‍යාංශය / මාර්ග පාලක';
+  String get secretary => 'සෞඛ්‍ය හා ජනමාධ්‍ය අමාත්‍යාංශයේ ලේකම්';
 
   @override
-  String get directorGeneral => 'සෞඛ්‍ය සේවා අධ්‍යක්ෂ';
+  String get directorGeneral => 'සෞඛ්‍ය සේවා අධ්‍යක්ෂ ජනරාල්';
 
   @override
-  String get english => 'English';
+  String get english => 'ඉංග්‍රීසි';
 
   @override
   String get sinhala => 'සිංහල';
 
   @override
-  String get tamil => 'தமிழ்';
+  String get tamil => 'දමිළ';
 
   @override
-  String get welcomeTo => 'ඔබට සුබ එළිදැක්වීමක්';
+  String get welcomeTo => 'සාදරයෙන් පිළිගනිමු';
 
   @override
-  String get ministryOfHealth => 'සෞඛ්‍ය අමාත්‍යාංශය ශ්‍රී ලංකා';
+  String get ministryOfHealth => 'ශ්‍රී ලංකා සෞඛ්‍ය අමාත්‍යාංශය';
 
   @override
   String get visionText =>
-      'අපි සෞඛ්‍ය ප්‍රතිපත්තීන් වෙනුවෙන් ප්‍රතිඵල සොයාගෙන සිටී.';
+      'අපි ජනතාව සෞඛ්‍ය සම්පන්නව තබා ගැනීමට, අවශ්‍ය විට උසස් තත්ත්වයේ සත්කාර ලබා දීමට සහ අනාගත පරම්පරා සඳහා සෞඛ්‍ය සේවා පද්ධතිය ආරක්ෂා කිරීමට පොරොන්දු වෙමු.';
 
   @override
-  String get preHistoricMedicine => 'පෙර ගමනෙහි පාරාන්තික වෛද්‍ය විද්‍යාව';
+  String get preHistoricMedicine => 'ප්‍රාග් ඓතිහාසික ලංකාවේ වෛද්‍ය විද්‍යාව';
 
   @override
-  String get medicineUnderSriLankanKings =>
-      'ශ්‍රී ලංකා රජතුමාලා යටතේ වෛද්‍ය විද්‍යාව';
+  String get medicineUnderSriLankanKings => 'ලංකා රජවරුන් යටතේ වෛද්‍ය විද්‍යාව';
 
   @override
   String get aboutUs => 'අප ගැන';
 
   @override
-  String get notifications => 'නිවේදන';
+  String get notifications => 'දැනුම්දීම්';
 
   @override
-  String get fullName => 'පූර්ණ නම';
+  String get fullName => 'සම්පූර්ණ නම';
 
   @override
-  String get password => 'රහස් පදය';
+  String get password => 'මුරපදය';
 
   @override
   String get saveChanges => 'වෙනස්කම් සුරකින්න';
 
   @override
-  String get editProfile => 'පරිශීලක පැතිකඩ සංස්කරණය';
+  String get editProfile => 'පැතිකඩ සංස්කරණය කරන්න';
 
   @override
-  String get searchBySerialNumber => 'අනුඅංකය මගින් සෙවීම';
+  String get searchBySerialNumber => 'අනුක්‍රමික අංකයෙන් සොයන්න';
 
   @override
-  String get enterSerialNumber => 'අනුඅංකය ඇතුළත් කරන්න';
+  String get enterSerialNumber => 'අනුක්‍රමික අංකය ඇතුළත් කරන්න';
 
   @override
-  String get noResultsFound => 'ප්‍රතිඵල කිසිවක් හමු වුණි';
+  String get noResultsFound => 'ප්‍රතිඵල කිසිවක් හමු නොවීය';
 
   @override
   String get enterNICNumber => 'ජාතික හැඳුනුම්පත් අංකය ඇතුළත් කරන්න';
@@ -306,11 +306,22 @@ class AppLocalizationsSi extends AppLocalizations {
   String get publicHealth => 'පොදු සෞඛ්‍ය';
 
   @override
-  String get hospitalBaseCare => 'හෝස්පිටල් පදනම් කාමර සේවා';
+  String get hospitalBaseCare => 'රෝහල් මූලික සත්කාර';
 
   @override
-  String get yourHealthWellBeing => 'ඔබේ සෞඛ්‍ය හා යහපත';
+  String get yourHealthWellBeing => 'ඔබේ සෞඛ්‍යය සහ යහපැවැත්ම';
 
   @override
-  String get welcomeToHealthMinistry => 'සෞඛ්‍ය අමාත්‍යංශයට ආයුබෝවන්';
+  String get welcomeToHealthMinistry =>
+      'සෞඛ්‍ය අමාත්‍යාංශයට සාදරයෙන් පිළිගනිමු';
+
+  @override
+  String get getYourInformation => 'ඔබගේ තොරතුරු මෙතැනින් ලබා ගන්න';
+
+  @override
+  String get name => 'නම';
+
+  @override
+  String get leadershipTeam =>
+      'අමාත්‍ය: වෛද්‍ය නලින්ද ජයතිස්ස\nඋප අමාත්‍ය: වෛද්‍ය හංසක විජේමුණි\nලේකම්: වෛද්‍ය අනිල් ජයසිංහ\nඅධ්‍යක්ෂ ජනරාල්: වෛද්‍ය අසේල ගුණවර්ධන';
 }

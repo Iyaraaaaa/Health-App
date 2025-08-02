@@ -565,13 +565,13 @@ abstract class AppLocalizations {
   /// No description provided for @sinhala.
   ///
   /// In en, this message translates to:
-  /// **'සිංහල'**
+  /// **'Sinhala'**
   String get sinhala;
 
   /// No description provided for @tamil.
   ///
   /// In en, this message translates to:
-  /// **'தமிழ்'**
+  /// **'Tamil'**
   String get tamil;
 
   /// No description provided for @welcomeTo.
@@ -687,6 +687,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Welcome to Health Ministry'**
   String get welcomeToHealthMinistry;
+
+  /// No description provided for @getYourInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Get Your Information Here'**
+  String get getYourInformation;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// Names of the ministry leadership team members
+  ///
+  /// In en, this message translates to:
+  /// **'Minister: Dr. Nalinda Jayatissa\nDeputy Minister: Dr. Hansaka Vijemuni\nSecretary: Dr. Anil Jayasighe\nDirector General: Dr. Asela Gunawaradena'**
+  String get leadershipTeam;
 }
 
 class _AppLocalizationsDelegate

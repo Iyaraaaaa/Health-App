@@ -1,13 +1,20 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:health_project/screens/forgot_password.dart';
+import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class LoginPage extends StatefulWidget {
-  static Route route() => MaterialPageRoute(
-        builder: (context) => const LoginPage(),
-      );
+  final Future<void> Function(bool isDark) onThemeChanged;
+  final Future<void> Function() onGoogleSignIn;
+  final bool isDarkMode;
 
-  const LoginPage({super.key});
+  const LoginPage({
+    super.key,
+    required this.onThemeChanged,
+    required this.onGoogleSignIn,
+    required this.isDarkMode,
+  });
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -18,16 +25,79 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  bool isLoading = false;
+  bool isEmailLoading = false;  // Separate loading states
+  bool isGoogleLoading = false;
   bool isPasswordVisible = false;
-  bool isDarkMode = false;
   bool rememberMe = false;
+  late bool isDarkMode;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: [
+      'email',
+      'https://www.googleapis.com/auth/userinfo.profile',
+    ],
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    isDarkMode = widget.isDarkMode;
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedRememberMe = prefs.getBool('remember_me') ?? false;
+      
+      if (savedRememberMe) {
+        final savedEmail = prefs.getString('saved_email') ?? '';
+        final savedPassword = prefs.getString('saved_password') ?? '';
+        
+        if (savedEmail.isNotEmpty && savedPassword.isNotEmpty) {
+          setState(() {
+            emailController.text = savedEmail;
+            passwordController.text = savedPassword;
+            rememberMe = savedRememberMe;
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading saved credentials: $e');
+    }
+  }
+
+  Future<void> _saveOrRemoveCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      
+      if (rememberMe) {
+        await prefs.setString('saved_email', emailController.text.trim());
+        await prefs.setString('saved_password', passwordController.text.trim());
+        await prefs.setBool('remember_me', true);
+      } else {
+        // Clear all saved credentials when remember me is unchecked
+        await prefs.remove('saved_email');
+        await prefs.remove('saved_password');
+        await prefs.setBool('remember_me', false);
+      }
+    } catch (e) {
+      print('Error saving credentials: $e');
+    }
+  }
+
+  Future<void> _toggleDarkMode() async {
+    setState(() {
+      isDarkMode = !isDarkMode;
+    });
+    await widget.onThemeChanged(isDarkMode);
   }
 
   String? _validateEmail(String? value) {
@@ -56,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    setState(() => isLoading = true);
+    setState(() => isEmailLoading = true);
 
     try {
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -64,30 +134,115 @@ class _LoginPageState extends State<LoginPage> {
         password: passwordController.text.trim(),
       );
 
+      if (!userCredential.user!.emailVerified) {
+        await FirebaseAuth.instance.signOut();
+        _showErrorSnackBar('Please verify your email before logging in.');
+        setState(() => isEmailLoading = false);
+        return;
+      }
+
+      // Save or remove credentials based on remember me checkbox
+      await _saveOrRemoveCredentials();
+      
       _showSuccessSnackBar('Welcome back!');
-      Navigator.pushReplacementNamed(context, '/home_page');
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
     } on FirebaseAuthException catch (e) {
       String errorMessage = "Login Failed";
-      if (e.code == 'user-not-found') {
-        errorMessage = "No user found with this email.";
-      } else if (e.code == 'wrong-password') {
-        errorMessage = "Incorrect password.";
-      } else if (e.code == 'invalid-email') {
-        errorMessage = "Invalid email format.";
-      } else if (e.code == 'user-disabled') {
-        errorMessage = "This account has been disabled.";
-      } else if (e.code == 'too-many-requests') {
-        errorMessage = "Too many failed attempts. Please try again later.";
+      switch (e.code) {
+        case 'user-not-found':
+          errorMessage = "No user found with this email.";
+          break;
+        case 'wrong-password':
+          errorMessage = "Incorrect password.";
+          break;
+        case 'invalid-email':
+          errorMessage = "Invalid email format.";
+          break;
+        case 'user-disabled':
+          errorMessage = "This account has been disabled.";
+          break;
+        case 'too-many-requests':
+          errorMessage = "Too many failed attempts. Please try again later.";
+          break;
+        case 'invalid-credential':
+          errorMessage = "Invalid email or password.";
+          break;
+        default:
+          errorMessage = "Login failed. Please try again.";
       }
       _showErrorSnackBar(errorMessage);
     } catch (e) {
       _showErrorSnackBar('An unexpected error occurred');
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) setState(() => isEmailLoading = false);
+    }
+  }
+
+  Future<void> signInWithGoogle() async {
+    setState(() => isGoogleLoading = true);
+
+    try {
+      // Sign out from previous Google session to ensure fresh login
+      await _googleSignIn.signOut();
+      
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) {
+        // User canceled the sign-in
+        setState(() => isGoogleLoading = false);
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential userCredential = 
+          await FirebaseAuth.instance.signInWithCredential(credential);
+
+      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
+        _showSuccessSnackBar('Welcome! Account created successfully.');
+      } else {
+        _showSuccessSnackBar('Welcome back!');
+      }
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Google sign-in failed';
+      switch (e.code) {
+        case 'account-exists-with-different-credential':
+          errorMessage = 'This email is already associated with another sign-in method';
+          break;
+        case 'invalid-credential':
+          errorMessage = 'Invalid credentials received from Google';
+          break;
+        case 'operation-not-allowed':
+          errorMessage = 'Google sign-in is not enabled';
+          break;
+        default:
+          errorMessage = 'Google sign-in failed. Please try again.';
+      }
+      _showErrorSnackBar(errorMessage);
+    } on PlatformException catch (e) {
+      if (e.code == 'sign_in_canceled') {
+        // User canceled - don't show error
+      } else {
+        _showErrorSnackBar('Sign-in error: ${e.message}');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Unexpected error during Google sign-in');
+    } finally {
+      if (mounted) setState(() => isGoogleLoading = false);
     }
   }
 
   void _showErrorSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -100,6 +255,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _showSuccessSnackBar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -138,7 +294,6 @@ class _LoginPageState extends State<LoginPage> {
         child: SafeArea(
           child: Stack(
             children: [
-              // Theme toggle button
               Positioned(
                 top: 10,
                 right: 20,
@@ -153,11 +308,10 @@ class _LoginPageState extends State<LoginPage> {
                       color: isDarkMode ? Colors.amber : Colors.white,
                       size: 24,
                     ),
-                    onPressed: () => setState(() => isDarkMode = !isDarkMode),
+                    onPressed: _toggleDarkMode,
                   ),
                 ),
               ),
-              // Main content
               Positioned.fill(
                 child: Padding(
                   padding: EdgeInsets.symmetric(
@@ -190,7 +344,6 @@ class _LoginPageState extends State<LoginPage> {
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  // Title and subtitle
                                   Text(
                                     'SIGN IN',
                                     style: TextStyle(
@@ -210,7 +363,6 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(height: isSmallScreen ? 24 : 32),
 
-                                  // Email field with black margin and border
                                   _buildTextField(
                                     controller: emailController,
                                     label: 'Email',
@@ -221,7 +373,6 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(height: isSmallScreen ? 16 : 20),
 
-                                  // Password field with eye icon to toggle visibility
                                   _buildTextField(
                                     controller: passwordController,
                                     label: 'Password',
@@ -235,7 +386,6 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(height: isSmallScreen ? 12 : 16),
 
-                                  // Remember me and forgot password row
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -244,13 +394,21 @@ class _LoginPageState extends State<LoginPage> {
                                           SizedBox(
                                             height: 20,
                                             width: 20,
-                                            child: Checkbox(
-                                              value: rememberMe,
-                                              onChanged: (value) =>
-                                                  setState(() => rememberMe = value ?? false),
-                                              activeColor: const Color(0xFF0D40DA),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(4),
+                                            child: Transform.scale(
+                                              scale: 0.9,
+                                              child: Checkbox(
+                                                value: rememberMe,
+                                                onChanged: (value) =>
+                                                    setState(() => rememberMe = value ?? false),
+                                                activeColor: const Color(0xFF0D40DA),
+                                                checkColor: Colors.white,
+                                                side: BorderSide(
+                                                  color: isDarkMode ? Colors.white60 : Colors.grey[600]!,
+                                                  width: 1.5,
+                                                ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
                                               ),
                                             ),
                                           ),
@@ -265,7 +423,7 @@ class _LoginPageState extends State<LoginPage> {
                                         ],
                                       ),
                                       TextButton(
-                                        onPressed: isLoading
+                                        onPressed: (isEmailLoading || isGoogleLoading)
                                             ? null
                                             : () => Navigator.pushNamed(context, '/forgot_password'),
                                         child: Text(
@@ -281,13 +439,13 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(height: isSmallScreen ? 20 : 28),
 
-                                  // Login button
+                                  // Email Login Button
                                   AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
                                     width: double.infinity,
                                     height: isSmallScreen ? 48 : 52,
                                     child: ElevatedButton(
-                                      onPressed: isLoading ? null : loginUser,
+                                      onPressed: (isEmailLoading || isGoogleLoading) ? null : loginUser,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFF0D40DA),
                                         foregroundColor: Colors.white,
@@ -297,7 +455,7 @@ class _LoginPageState extends State<LoginPage> {
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                       ),
-                                      child: isLoading
+                                      child: isEmailLoading
                                           ? const SizedBox(
                                               height: 20,
                                               width: 20,
@@ -318,7 +476,6 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(height: isSmallScreen ? 20 : 24),
 
-                                  // Divider
                                   Row(
                                     children: [
                                       Expanded(
@@ -348,9 +505,63 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(height: isSmallScreen ? 16 : 20),
 
-                                  // Sign up link
+                                  // Google Sign-In Button
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: double.infinity,
+                                    height: isSmallScreen ? 48 : 52,
+                                    child: ElevatedButton(
+                                      onPressed: (isEmailLoading || isGoogleLoading) ? null : signInWithGoogle,
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                        foregroundColor: isDarkMode ? Colors.white : Colors.black87,
+                                        elevation: 2,
+                                        shadowColor: Colors.black26,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                          side: BorderSide(
+                                            color: isDarkMode ? Colors.grey[600]! : Colors.grey.shade300,
+                                            width: 1,
+                                          ),
+                                        ),
+                                      ),
+                                      child: isGoogleLoading
+                                          ? const SizedBox(
+                                              height: 20,
+                                              width: 20,
+                                              child: CircularProgressIndicator(
+                                                color: Colors.black54,
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Container(
+                                                  width: 20,
+                                                  height: 20,
+                                                  child: CustomPaint(
+                                                    painter: GoogleIconPainter(),
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Text(
+                                                  'GOOGLE SIGN IN',
+                                                  style: TextStyle(
+                                                    fontSize: isSmallScreen ? 16 : 18,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: isDarkMode ? Colors.white : Colors.black87,
+                                                    letterSpacing: 1,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                  ),
+                                  SizedBox(height: isSmallScreen ? 16 : 24),
+
                                   TextButton(
-                                    onPressed: isLoading
+                                    onPressed: (isEmailLoading || isGoogleLoading)
                                         ? null
                                         : () => Navigator.pushNamed(context, '/signup'),
                                     child: RichText(
@@ -427,8 +638,8 @@ class _LoginPageState extends State<LoginPage> {
             : Colors.grey[100]?.withOpacity(0.8),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.black, // Black border color
+          borderSide: const BorderSide(
+            color: Colors.black,
             width: 2,
           ),
         ),
@@ -470,4 +681,76 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
+}
+
+class GoogleIconPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    
+    // Google "G" colors
+    final redPaint = Paint()..color = const Color(0xFFEA4335);
+    final yellowPaint = Paint()..color = const Color(0xFFFBBC05);
+    final greenPaint = Paint()..color = const Color(0xFF34A853);
+    final bluePaint = Paint()..color = const Color(0xFF4285F4);
+    
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    
+    // Draw the Google "G" logo
+    // Blue section (top right)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -1.57, // -90 degrees in radians
+      1.57,  // 90 degrees in radians
+      true,
+      bluePaint,
+    );
+    
+    // Green section (bottom right)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      0,     // 0 degrees
+      1.57,  // 90 degrees
+      true,
+      greenPaint,
+    );
+    
+    // Yellow section (bottom left)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      1.57,  // 90 degrees
+      1.57,  // 90 degrees
+      true,
+      yellowPaint,
+    );
+    
+    // Red section (top left)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      3.14,  // 180 degrees
+      1.57,  // 90 degrees
+      true,
+      redPaint,
+    );
+    
+    // Draw white circle in center to create the "G" shape
+    final whitePaint = Paint()..color = Colors.white;
+    canvas.drawCircle(center, radius * 0.5, whitePaint);
+    
+    // Draw the horizontal line to complete the "G"
+    final linePaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..strokeWidth = radius * 0.2
+      ..strokeCap = StrokeCap.round;
+    
+    canvas.drawLine(
+      Offset(center.dx, center.dy),
+      Offset(center.dx + radius * 0.7, center.dy),
+      linePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

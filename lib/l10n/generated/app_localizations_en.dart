@@ -252,10 +252,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get english => 'English';
 
   @override
-  String get sinhala => 'සිංහල';
+  String get sinhala => 'Sinhala';
 
   @override
-  String get tamil => 'தமிழ்';
+  String get tamil => 'Tamil';
 
   @override
   String get welcomeTo => 'Welcome To';
@@ -314,4 +314,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeToHealthMinistry => 'Welcome to Health Ministry';
+
+  @override
+  String get getYourInformation => 'Get Your Information Here';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get leadershipTeam =>
+      'Minister: Dr. Nalinda Jayatissa\nDeputy Minister: Dr. Hansaka Vijemuni\nSecretary: Dr. Anil Jayasighe\nDirector General: Dr. Asela Gunawaradena';
 }

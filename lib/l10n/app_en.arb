@@ -77,8 +77,8 @@
   "secretary": "Secretary / Ministry of Health and Mass Media",
   "directorGeneral": "Director General of Health Services",
   "english": "English",
-  "sinhala": "සිංහල",
-  "tamil": "தமிழ்",
+  "sinhala": "Sinhala",
+  "tamil": "Tamil",
   "welcomeTo": "Welcome To",
   "ministryOfHealth": "Ministry of Health Sri Lanka",
   "visionText": "We pledge to keep people healthy, to offer high-quality care when it is required, and to safeguard the healthcare system for future generations.",
@@ -97,5 +97,12 @@
   "publicHealth": "Public Health",
   "hospitalBaseCare": "Hospital Base Care",
   "yourHealthWellBeing": "Your Health & Well Being",
-  "welcomeToHealthMinistry": "Welcome to Health Ministry"
+  "welcomeToHealthMinistry": "Welcome to Health Ministry",
+  "getYourInformation": "Get Your Information Here",
+  "name": "Name",
+  "leadershipTeam": "Minister: Dr. Nalinda Jayatissa\nDeputy Minister: Dr. Hansaka Vijemuni\nSecretary: Dr. Anil Jayasighe\nDirector General: Dr. Asela Gunawaradena",
+  "@leadershipTeam": {
+    "description": "Names of the ministry leadership team members",
+    "placeholders": {}
+  }
 }

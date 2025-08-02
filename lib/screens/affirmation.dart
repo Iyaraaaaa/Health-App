@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:health_project/l10n/generated/app_localizations.dart';
 
 class AffirmationPage extends StatefulWidget {
@@ -128,13 +129,67 @@ class _AffirmationPageState extends State<AffirmationPage> {
     super.dispose();
   }
 
+  Future<void> saveFormData() async {
+    try {
+      final formData = {
+        'serialNumber': serialNumberController.text.trim(),
+        'officerName': officerNameController.text.trim(),
+        'nic': nicController.text.trim(),
+        'designation': selectedDesignation,
+        'station': selectedStation,
+        'letterDate': letterDateController.text.trim(),
+        'dateConfirmed': dateConfirmedController.text.trim(),
+        'responsibleOfficer': selectedResponsibleOfficer,
+        'fileNumber': fileNumberController.text.trim(),
+        'deficiencyNotifyDate': defNotifyController.text.trim(),
+        'deficiencyCorrectedDate': defCorrectedController.text.trim(),
+        'sentDate': sentDateController.text.trim(),
+        'approvalGrantedDate': approvalGrantedController.text.trim(),
+        'approvalNotifiedDate': approvalNotifiedController.text.trim(),
+      };
+
+      await FirebaseFirestore.instance.collection('affirmations').add(formData);
+
+      _showSuccessDialog();
+    } catch (e) {
+      _showErrorSnackBar('Error saving data');
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("🎉 ${AppLocalizations.of(context)?.success ?? 'Success'}"),
+        content: Text(AppLocalizations.of(context)?.formSubmittedSuccess ?? 'Form Submitted Successfully!'),
+        actions: [
+          TextButton(
+            child: Text(AppLocalizations.of(context)?.ok ?? 'OK'),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // AppBar removed
       body: LayoutBuilder(
         builder: (context, constraints) => SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -145,7 +200,7 @@ class _AffirmationPageState extends State<AffirmationPage> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    const SizedBox(height: 16), // Added space at the top since app bar is removed
+                    const SizedBox(height: 16), 
                     buildSectionCard(
                       title: "📝 ${loc?.staffDetails ?? 'Staff Details'}",
                       children: [
@@ -196,11 +251,7 @@ class _AffirmationPageState extends State<AffirmationPage> {
                         foregroundColor: Colors.white, // Text color white
                         textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold), // Larger text size
                       ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          _showSuccessDialog(context);
-                        }
-                      },
+                      onPressed: saveFormData,
                     ),
                   ],
                 ),
@@ -298,22 +349,6 @@ class _AffirmationPageState extends State<AffirmationPage> {
         onChanged: (val) => setState(() => onChanged(val)),
         validator: (value) =>
             value == null ? AppLocalizations.of(context)?.pleaseSelect ?? 'Please select an option.' : null,
-      ),
-    );
-  }
-
-  void _showSuccessDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text("🎉 ${AppLocalizations.of(context)?.success ?? 'Success'}"),
-        content: Text(AppLocalizations.of(context)?.formSubmittedSuccess ?? 'Form Submitted Successfully!'),
-        actions: [
-          TextButton(
-            child: Text(AppLocalizations.of(context)?.ok ?? 'OK'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
       ),
     );
   }
