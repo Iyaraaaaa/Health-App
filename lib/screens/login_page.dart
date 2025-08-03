@@ -25,8 +25,7 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  bool isEmailLoading = false;  // Separate loading states
-  bool isGoogleLoading = false;
+  bool isLoading = false; // Single loading state for both buttons
   bool isPasswordVisible = false;
   bool rememberMe = false;
   late bool isDarkMode;
@@ -61,7 +60,7 @@ class _LoginPageState extends State<LoginPage> {
         final savedEmail = prefs.getString('saved_email') ?? '';
         final savedPassword = prefs.getString('saved_password') ?? '';
         
-        if (savedEmail.isNotEmpty && savedPassword.isNotEmpty) {
+        if (savedEmail.isNotEmpty) {
           setState(() {
             emailController.text = savedEmail;
             passwordController.text = savedPassword;
@@ -83,7 +82,6 @@ class _LoginPageState extends State<LoginPage> {
         await prefs.setString('saved_password', passwordController.text.trim());
         await prefs.setBool('remember_me', true);
       } else {
-        // Clear all saved credentials when remember me is unchecked
         await prefs.remove('saved_email');
         await prefs.remove('saved_password');
         await prefs.setBool('remember_me', false);
@@ -126,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    setState(() => isEmailLoading = true);
+    setState(() => isLoading = true);
 
     try {
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -137,11 +135,10 @@ class _LoginPageState extends State<LoginPage> {
       if (!userCredential.user!.emailVerified) {
         await FirebaseAuth.instance.signOut();
         _showErrorSnackBar('Please verify your email before logging in.');
-        setState(() => isEmailLoading = false);
+        setState(() => isLoading = false);
         return;
       }
 
-      // Save or remove credentials based on remember me checkbox
       await _saveOrRemoveCredentials();
       
       _showSuccessSnackBar('Welcome back!');
@@ -176,12 +173,12 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       _showErrorSnackBar('An unexpected error occurred');
     } finally {
-      if (mounted) setState(() => isEmailLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
   Future<void> signInWithGoogle() async {
-    setState(() => isGoogleLoading = true);
+    setState(() => isLoading = true);
 
     try {
       // Sign out from previous Google session to ensure fresh login
@@ -189,8 +186,7 @@ class _LoginPageState extends State<LoginPage> {
       
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        // User canceled the sign-in
-        setState(() => isGoogleLoading = false);
+        setState(() => isLoading = false);
         return;
       }
 
@@ -200,15 +196,15 @@ class _LoginPageState extends State<LoginPage> {
         idToken: googleAuth.idToken,
       );
 
-      final UserCredential userCredential = 
-          await FirebaseAuth.instance.signInWithCredential(credential);
-
-      if (userCredential.additionalUserInfo?.isNewUser ?? false) {
-        _showSuccessSnackBar('Welcome! Account created successfully.');
-      } else {
-        _showSuccessSnackBar('Welcome back!');
+      await FirebaseAuth.instance.signInWithCredential(credential);
+      
+      // Don't save credentials for Google Sign-In
+      if (rememberMe) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('remember_me', false);
       }
 
+      _showSuccessSnackBar('Welcome back!');
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
@@ -229,15 +225,13 @@ class _LoginPageState extends State<LoginPage> {
       }
       _showErrorSnackBar(errorMessage);
     } on PlatformException catch (e) {
-      if (e.code == 'sign_in_canceled') {
-        // User canceled - don't show error
-      } else {
+      if (e.code != 'sign_in_canceled') {
         _showErrorSnackBar('Sign-in error: ${e.message}');
       }
     } catch (e) {
       _showErrorSnackBar('Unexpected error during Google sign-in');
     } finally {
-      if (mounted) setState(() => isGoogleLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -363,26 +357,130 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                   SizedBox(height: isSmallScreen ? 24 : 32),
 
-                                  _buildTextField(
+                                  TextFormField(
                                     controller: emailController,
-                                    label: 'Email',
-                                    prefixIcon: Icons.email_outlined,
+                                    obscureText: false,
                                     validator: _validateEmail,
                                     keyboardType: TextInputType.emailAddress,
-                                    isSmallScreen: isSmallScreen,
+                                    style: TextStyle(
+                                      color: isDarkMode ? Colors.white : Colors.black87,
+                                      fontSize: isSmallScreen ? 14 : 16,
+                                    ),
+                                    decoration: InputDecoration(
+                                      labelText: 'Email',
+                                      prefixIcon: Icon(
+                                        Icons.email_outlined,
+                                        color: isDarkMode ? Colors.white60 : Colors.grey[600],
+                                        size: isSmallScreen ? 20 : 24,
+                                      ),
+                                      labelStyle: TextStyle(
+                                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                                        fontSize: isSmallScreen ? 14 : 16,
+                                      ),
+                                      filled: true,
+                                      fillColor: isDarkMode 
+                                          ? Colors.grey[850]?.withOpacity(0.8) 
+                                          : Colors.grey[100]?.withOpacity(0.8),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: const BorderSide(
+                                          color: Colors.black,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: const BorderSide(
+                                          color: Color(0xFF0D40DA),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      errorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: Colors.red[400]!, 
+                                          width: 1,
+                                        ),
+                                      ),
+                                      focusedErrorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: Colors.red[400]!,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: isSmallScreen ? 12 : 16,
+                                      ),
+                                    ),
                                   ),
                                   SizedBox(height: isSmallScreen ? 16 : 20),
 
-                                  _buildTextField(
+                                  TextFormField(
                                     controller: passwordController,
-                                    label: 'Password',
-                                    prefixIcon: Icons.lock_outline,
-                                    isPassword: true,
-                                    isVisible: isPasswordVisible,
+                                    obscureText: !isPasswordVisible,
                                     validator: _validatePassword,
-                                    onVisibilityChanged: () =>
-                                        setState(() => isPasswordVisible = !isPasswordVisible),
-                                    isSmallScreen: isSmallScreen,
+                                    style: TextStyle(
+                                      color: isDarkMode ? Colors.white : Colors.black87,
+                                      fontSize: isSmallScreen ? 14 : 16,
+                                    ),
+                                    decoration: InputDecoration(
+                                      labelText: 'Password',
+                                      prefixIcon: Icon(
+                                        Icons.lock_outline,
+                                        color: isDarkMode ? Colors.white60 : Colors.grey[600],
+                                        size: isSmallScreen ? 20 : 24,
+                                      ),
+                                      labelStyle: TextStyle(
+                                        color: isDarkMode ? Colors.white70 : Colors.black54,
+                                        fontSize: isSmallScreen ? 14 : 16,
+                                      ),
+                                      filled: true,
+                                      fillColor: isDarkMode 
+                                          ? Colors.grey[850]?.withOpacity(0.8) 
+                                          : Colors.grey[100]?.withOpacity(0.8),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: const BorderSide(
+                                          color: Colors.black,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: const BorderSide(
+                                          color: Color(0xFF0D40DA),
+                                          width: 2,
+                                        ),
+                                      ),
+                                      errorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: Colors.red[400]!, 
+                                          width: 1,
+                                        ),
+                                      ),
+                                      focusedErrorBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                        borderSide: BorderSide(
+                                          color: Colors.red[400]!,
+                                          width: 2,
+                                        ),
+                                      ),
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: isSmallScreen ? 12 : 16,
+                                      ),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                                          color: isDarkMode ? Colors.white60 : Colors.grey[600],
+                                          size: isSmallScreen ? 20 : 24,
+                                        ),
+                                        onPressed: () => setState(() => isPasswordVisible = !isPasswordVisible),
+                                      ),
+                                    ),
                                   ),
                                   SizedBox(height: isSmallScreen ? 12 : 16),
 
@@ -423,7 +521,7 @@ class _LoginPageState extends State<LoginPage> {
                                         ],
                                       ),
                                       TextButton(
-                                        onPressed: (isEmailLoading || isGoogleLoading)
+                                        onPressed: isLoading
                                             ? null
                                             : () => Navigator.pushNamed(context, '/forgot_password'),
                                         child: Text(
@@ -445,7 +543,7 @@ class _LoginPageState extends State<LoginPage> {
                                     width: double.infinity,
                                     height: isSmallScreen ? 48 : 52,
                                     child: ElevatedButton(
-                                      onPressed: (isEmailLoading || isGoogleLoading) ? null : loginUser,
+                                      onPressed: isLoading ? null : loginUser,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFF0D40DA),
                                         foregroundColor: Colors.white,
@@ -455,7 +553,7 @@ class _LoginPageState extends State<LoginPage> {
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                       ),
-                                      child: isEmailLoading
+                                      child: isLoading
                                           ? const SizedBox(
                                               height: 20,
                                               width: 20,
@@ -511,7 +609,7 @@ class _LoginPageState extends State<LoginPage> {
                                     width: double.infinity,
                                     height: isSmallScreen ? 48 : 52,
                                     child: ElevatedButton(
-                                      onPressed: (isEmailLoading || isGoogleLoading) ? null : signInWithGoogle,
+                                      onPressed: isLoading ? null : signInWithGoogle,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
                                         foregroundColor: isDarkMode ? Colors.white : Colors.black87,
@@ -525,7 +623,7 @@ class _LoginPageState extends State<LoginPage> {
                                           ),
                                         ),
                                       ),
-                                      child: isGoogleLoading
+                                      child: isLoading
                                           ? const SizedBox(
                                               height: 20,
                                               width: 20,
@@ -561,7 +659,7 @@ class _LoginPageState extends State<LoginPage> {
                                   SizedBox(height: isSmallScreen ? 16 : 24),
 
                                   TextButton(
-                                    onPressed: (isEmailLoading || isGoogleLoading)
+                                    onPressed: isLoading
                                         ? null
                                         : () => Navigator.pushNamed(context, '/signup'),
                                     child: RichText(
@@ -597,87 +695,6 @@ class _LoginPageState extends State<LoginPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData prefixIcon,
-    String? Function(String?)? validator,
-    bool isPassword = false,
-    bool isVisible = false,
-    VoidCallback? onVisibilityChanged,
-    TextInputType? keyboardType,
-    bool isSmallScreen = false,
-  }) {
-    return TextFormField(
-      controller: controller,
-      obscureText: isPassword && !isVisible,
-      validator: validator,
-      keyboardType: keyboardType,
-      style: TextStyle(
-        color: isDarkMode ? Colors.white : Colors.black87,
-        fontSize: isSmallScreen ? 14 : 16,
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(
-          prefixIcon,
-          color: isDarkMode ? Colors.white60 : Colors.grey[600],
-          size: isSmallScreen ? 20 : 24,
-        ),
-        labelStyle: TextStyle(
-          color: isDarkMode ? Colors.white70 : Colors.black54,
-          fontSize: isSmallScreen ? 14 : 16,
-        ),
-        filled: true,
-        fillColor: isDarkMode 
-            ? Colors.grey[850]?.withOpacity(0.8) 
-            : Colors.grey[100]?.withOpacity(0.8),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Colors.black,
-            width: 2,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF0D40DA),
-            width: 2,
-          ),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.red[400]!, 
-            width: 1,
-          ),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(
-            color: Colors.red[400]!,
-            width: 2,
-          ),
-        ),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: isSmallScreen ? 12 : 16,
-        ),
-        suffixIcon: isPassword
-            ? IconButton(
-                icon: Icon(
-                  isVisible ? Icons.visibility : Icons.visibility_off,
-                  color: isDarkMode ? Colors.white60 : Colors.grey[600],
-                  size: isSmallScreen ? 20 : 24,
-                ),
-                onPressed: onVisibilityChanged,
-              )
-            : null,
       ),
     );
   }

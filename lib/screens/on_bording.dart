@@ -8,8 +8,7 @@ class OnBoardingScreen extends StatefulWidget {
   State<OnBoardingScreen> createState() => _OnBoardingScreenState();
 }
 
-class _OnBoardingScreenState extends State<OnBoardingScreen>
-    with TickerProviderStateMixin {
+class _OnBoardingScreenState extends State<OnBoardingScreen> with TickerProviderStateMixin {
   final PageController controller = PageController();
   int selectPage = 0;
 
@@ -175,7 +174,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
             child: SlideTransition(
               position: _slideAnimation,
               child: Container(
-                height: size.height * 0.45, // Adjusted height for the image
+                height: size.height * 0.45,
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(32),
@@ -347,7 +346,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen>
             text: selectPage == pageArr.length - 1 ? "Get Started" : "Next",
             onPressed: () {
               if (selectPage == pageArr.length - 1) {
-                Navigator.pushReplacementNamed(context, '/login_page');
+                Navigator.pushReplacementNamed(context, '/login');
               } else {
                 controller.nextPage(
                   duration: const Duration(milliseconds: 400),
