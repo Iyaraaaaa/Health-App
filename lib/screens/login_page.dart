@@ -25,7 +25,9 @@ class _LoginPageState extends State<LoginPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  bool isLoading = false; // Single loading state for both buttons
+  // Separate loading states for each button
+  bool isEmailLoading = false;
+  bool isGoogleLoading = false;
   bool isPasswordVisible = false;
   bool rememberMe = false;
   late bool isDarkMode;
@@ -124,7 +126,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    setState(() => isLoading = true);
+    setState(() => isEmailLoading = true);
 
     try {
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -135,10 +137,11 @@ class _LoginPageState extends State<LoginPage> {
       if (!userCredential.user!.emailVerified) {
         await FirebaseAuth.instance.signOut();
         _showErrorSnackBar('Please verify your email before logging in.');
-        setState(() => isLoading = false);
+        setState(() => isEmailLoading = false);
         return;
       }
 
+      // Only save credentials for email login when remember me is checked
       await _saveOrRemoveCredentials();
       
       _showSuccessSnackBar('Welcome back!');
@@ -173,12 +176,12 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       _showErrorSnackBar('An unexpected error occurred');
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) setState(() => isEmailLoading = false);
     }
   }
 
   Future<void> signInWithGoogle() async {
-    setState(() => isLoading = true);
+    setState(() => isGoogleLoading = true);
 
     try {
       // Sign out from previous Google session to ensure fresh login
@@ -186,7 +189,7 @@ class _LoginPageState extends State<LoginPage> {
       
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        setState(() => isLoading = false);
+        setState(() => isGoogleLoading = false);
         return;
       }
 
@@ -198,12 +201,6 @@ class _LoginPageState extends State<LoginPage> {
 
       await FirebaseAuth.instance.signInWithCredential(credential);
       
-      // Don't save credentials for Google Sign-In
-      if (rememberMe) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('remember_me', false);
-      }
-
       _showSuccessSnackBar('Welcome back!');
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
@@ -231,7 +228,7 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       _showErrorSnackBar('Unexpected error during Google sign-in');
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) setState(() => isGoogleLoading = false);
     }
   }
 
@@ -266,6 +263,9 @@ class _LoginPageState extends State<LoginPage> {
     final screenHeight = MediaQuery.of(context).size.height;
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenHeight < 700;
+    
+    // Check if any loading is happening for UI interactions
+    final isAnyLoading = isEmailLoading || isGoogleLoading;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -521,7 +521,7 @@ class _LoginPageState extends State<LoginPage> {
                                         ],
                                       ),
                                       TextButton(
-                                        onPressed: isLoading
+                                        onPressed: isAnyLoading
                                             ? null
                                             : () => Navigator.pushNamed(context, '/forgot_password'),
                                         child: Text(
@@ -543,7 +543,7 @@ class _LoginPageState extends State<LoginPage> {
                                     width: double.infinity,
                                     height: isSmallScreen ? 48 : 52,
                                     child: ElevatedButton(
-                                      onPressed: isLoading ? null : loginUser,
+                                      onPressed: isAnyLoading ? null : loginUser,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFF0D40DA),
                                         foregroundColor: Colors.white,
@@ -553,7 +553,7 @@ class _LoginPageState extends State<LoginPage> {
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                       ),
-                                      child: isLoading
+                                      child: isEmailLoading
                                           ? const SizedBox(
                                               height: 20,
                                               width: 20,
@@ -609,7 +609,7 @@ class _LoginPageState extends State<LoginPage> {
                                     width: double.infinity,
                                     height: isSmallScreen ? 48 : 52,
                                     child: ElevatedButton(
-                                      onPressed: isLoading ? null : signInWithGoogle,
+                                      onPressed: isAnyLoading ? null : signInWithGoogle,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
                                         foregroundColor: isDarkMode ? Colors.white : Colors.black87,
@@ -623,12 +623,12 @@ class _LoginPageState extends State<LoginPage> {
                                           ),
                                         ),
                                       ),
-                                      child: isLoading
-                                          ? const SizedBox(
+                                      child: isGoogleLoading
+                                          ? SizedBox(
                                               height: 20,
                                               width: 20,
                                               child: CircularProgressIndicator(
-                                                color: Colors.black54,
+                                                color: isDarkMode ? Colors.white : Colors.black54,
                                                 strokeWidth: 2,
                                               ),
                                             )
@@ -659,7 +659,7 @@ class _LoginPageState extends State<LoginPage> {
                                   SizedBox(height: isSmallScreen ? 16 : 24),
 
                                   TextButton(
-                                    onPressed: isLoading
+                                    onPressed: isAnyLoading
                                         ? null
                                         : () => Navigator.pushNamed(context, '/signup'),
                                     child: RichText(
