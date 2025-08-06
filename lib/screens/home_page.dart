@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:health_project/screens/about_us.dart';
 import 'package:health_project/screens/affirmation.dart';
 import 'package:health_project/screens/contact_us.dart';
@@ -125,35 +128,73 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _userId = prefs.getString('userId') ?? '';
-      _userName = prefs.getString('userName') ?? "User Name";
-      _userEmail = prefs.getString('userEmail') ?? "user@example.com";
-      _userImage = prefs.getString('userImage') ?? '';
-    });
-
-    if (_userId.isNotEmpty) {
-      // Fetch user data from Firestore
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(_userId)
-          .get();
-
-      if (userDoc.exists) {
-        final userData = userDoc.data();
+    try {
+      // Get current Firebase user
+      final currentUser = FirebaseAuth.instance.currentUser;
+      
+      if (currentUser != null) {
         setState(() {
-          _userName = userData?['name'] ?? _userName;
-          _userEmail = userData?['email'] ?? _userEmail;
-          _userImage = userData?['imageUrl'] ?? _userImage;
+          _userId = currentUser.uid;
+          _userEmail = currentUser.email ?? "user@example.com";
         });
 
-        // Update shared preferences
-        await prefs.setString('userName', _userName);
-        await prefs.setString('userEmail', _userEmail);
-        if (_userImage.isNotEmpty) {
-          await prefs.setString('userImage', _userImage);
+        // Fetch latest data from Firestore
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+
+        if (userDoc.exists && mounted) {
+          final userData = userDoc.data() as Map<String, dynamic>?;
+          if (userData != null) {
+            setState(() {
+              _userName = userData['name'] ?? currentUser.displayName ?? "User Name";
+              _userEmail = userData['email'] ?? currentUser.email ?? "user@example.com";
+              
+              // Handle profile image - check for both Base64 and imageUrl fields
+              if (userData['profileImageBase64'] != null && userData['profileImageBase64'].isNotEmpty) {
+                _userImage = 'data:image/jpeg;base64,${userData['profileImageBase64']}';
+              } else if (userData['imageUrl'] != null && userData['imageUrl'].isNotEmpty) {
+                _userImage = userData['imageUrl'];
+              } else {
+                _userImage = '';
+              }
+            });
+
+            // Update SharedPreferences with latest data
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('userId', _userId);
+            await prefs.setString('userName', _userName);
+            await prefs.setString('userEmail', _userEmail);
+            if (_userImage.isNotEmpty) {
+              await prefs.setString('userImage', _userImage);
+            }
+          }
         }
+      } else {
+        // Fallback to SharedPreferences if no Firebase user
+        final prefs = await SharedPreferences.getInstance();
+        if (mounted) {
+          setState(() {
+            _userId = prefs.getString('userId') ?? '';
+            _userName = prefs.getString('userName') ?? "User Name";
+            _userEmail = prefs.getString('userEmail') ?? "user@example.com";
+            _userImage = prefs.getString('userImage') ?? '';
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+      
+      // Fallback to SharedPreferences on error
+      final prefs = await SharedPreferences.getInstance();
+      if (mounted) {
+        setState(() {
+          _userId = prefs.getString('userId') ?? '';
+          _userName = prefs.getString('userName') ?? "User Name";
+          _userEmail = prefs.getString('userEmail') ?? "user@example.com";
+          _userImage = prefs.getString('userImage') ?? '';
+        });
       }
     }
   }
@@ -165,11 +206,43 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         size: 40,
         color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
       );
+    } else if (_userImage.startsWith('data:image')) {
+      // Handle Base64 images
+      try {
+        final base64String = _userImage.split(',')[1];
+        final bytes = base64Decode(base64String);
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Image.memory(
+            bytes,
+            width: 40,
+            height: 40,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Icon(
+                Icons.account_circle,
+                size: 40,
+                color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+              );
+            },
+          ),
+        );
+      } catch (e) {
+        debugPrint('Error decoding Base64 image: $e');
+        return Icon(
+          Icons.account_circle,
+          size: 40,
+          color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+        );
+      }
     } else {
+      // Handle network images
       return ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: Image.network(
           _userImage,
+          width: 40,
+          height: 40,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             return Icon(
@@ -635,7 +708,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                     );
                     if (result == true) {
-                      await _loadUserData();
+                      await _loadUserData(); // Refresh user data
                     }
                   },
                 ),
@@ -683,6 +756,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
       textColor: widget.isDarkMode ? Colors.white : Colors.black,
       onTap: () async {
         if (isLogout) {
+          // Clear Firebase Auth
+          await FirebaseAuth.instance.signOut();
+          // Clear SharedPreferences
           SharedPreferences prefs = await SharedPreferences.getInstance();
           await prefs.clear();
           Navigator.pushReplacement(

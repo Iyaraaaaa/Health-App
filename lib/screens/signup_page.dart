@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignUpPage extends StatefulWidget {
   final bool isDarkMode;
@@ -212,7 +213,7 @@ class _SignUpPageState extends State<SignUpPage> {
         profileImageBase64 = base64Encode(bytes);
       }
 
-      // Create user data map
+      // Create user data map with consistent field names
       final userData = {
         'uid': user.uid,
         'name': nameController.text.trim(),
@@ -222,9 +223,12 @@ class _SignUpPageState extends State<SignUpPage> {
         'isActive': true,
       };
 
-      // Add profile image if exists
+      // Add profile image field that matches what HomePage expects
       if (profileImageBase64 != null) {
         userData['profileImageBase64'] = profileImageBase64;
+        userData['imageUrl'] = 'data:image/jpeg;base64,$profileImageBase64'; // For compatibility
+      } else {
+        userData['imageUrl'] = ''; // Empty string if no image
       }
 
       // Save user data to Firestore
@@ -232,6 +236,15 @@ class _SignUpPageState extends State<SignUpPage> {
           .collection('users')
           .doc(user.uid)
           .set(userData, SetOptions(merge: true));
+
+      // Save user data to SharedPreferences for immediate access
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userId', user.uid);
+      await prefs.setString('userName', nameController.text.trim());
+      await prefs.setString('userEmail', emailController.text.trim());
+      if (profileImageBase64 != null) {
+        await prefs.setString('userImage', 'data:image/jpeg;base64,$profileImageBase64');
+      }
 
       _showSuccessSnackBar('Registration completed successfully!');
       
