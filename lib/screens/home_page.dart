@@ -11,6 +11,7 @@ import 'package:health_project/screens/privacy.dart';
 import 'package:health_project/screens/search.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health_project/l10n/generated/app_localizations.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomePage extends StatefulWidget {
   final Function(bool) onThemeChanged;
@@ -35,6 +36,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   String _userName = "User Name";
   String _userEmail = "user@example.com";
   String _userImage = '';
+  String _userId = '';
 
   late List<Widget> _pages;
   late PageController _pageController;
@@ -125,19 +127,59 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
+      _userId = prefs.getString('userId') ?? '';
       _userName = prefs.getString('userName') ?? "User Name";
       _userEmail = prefs.getString('userEmail') ?? "user@example.com";
-      _userImage = prefs.getString('userImage') ?? 'assets/images/empty.jpg';
+      _userImage = prefs.getString('userImage') ?? '';
     });
+
+    if (_userId.isNotEmpty) {
+      // Fetch user data from Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(_userId)
+          .get();
+
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        setState(() {
+          _userName = userData?['name'] ?? _userName;
+          _userEmail = userData?['email'] ?? _userEmail;
+          _userImage = userData?['imageUrl'] ?? _userImage;
+        });
+
+        // Update shared preferences
+        await prefs.setString('userName', _userName);
+        await prefs.setString('userEmail', _userEmail);
+        if (_userImage.isNotEmpty) {
+          await prefs.setString('userImage', _userImage);
+        }
+      }
+    }
   }
 
-  ImageProvider _getImageProvider() {
+  Widget _getProfileImage() {
     if (_userImage.isEmpty) {
-      return const AssetImage('assets/images/empty.jpg');
-    } else if (_userImage.startsWith('http')) {
-      return NetworkImage(_userImage);
+      return Icon(
+        Icons.account_circle,
+        size: 40,
+        color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+      );
     } else {
-      return AssetImage(_userImage);
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Image.network(
+          _userImage,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Icon(
+              Icons.account_circle,
+              size: 40,
+              color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+            );
+          },
+        ),
+      );
     }
   }
 
@@ -568,10 +610,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 accountEmail: Text(_userEmail),
                 currentAccountPicture: CircleAvatar(
-                  backgroundImage: _getImageProvider(),
-                  onBackgroundImageError: (exception, stackTrace) {
-                    debugPrint('Failed to load image: $exception');
-                  },
+                  backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
+                  child: _getProfileImage(),
                 ),
                 decoration: BoxDecoration(
                   color: isDark ? Colors.grey[850] : Colors.blue,

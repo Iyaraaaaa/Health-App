@@ -1,6 +1,11 @@
+import 'dart:async';
+import 'dart:io';
+import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 
 class SignUpPage extends StatefulWidget {
   final bool isDarkMode;
@@ -28,6 +33,10 @@ class _SignUpPageState extends State<SignUpPage> {
   bool isConfirmPasswordVisible = false;
   bool isEmailVerified = false;
   late bool isDarkMode;
+  StreamSubscription? _verificationSubscription;
+  
+  File? _profileImage;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -41,6 +50,7 @@ class _SignUpPageState extends State<SignUpPage> {
     emailController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
+    _verificationSubscription?.cancel();
     super.dispose();
   }
 
@@ -49,6 +59,35 @@ class _SignUpPageState extends State<SignUpPage> {
       isDarkMode = !isDarkMode;
     });
     await widget.onThemeChanged(isDarkMode);
+  }
+
+  Future<void> _pickProfileImage() async {
+    try {
+      final pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+
+      if (pickedFile != null) {
+        final file = File(pickedFile.path);
+        final fileSize = await file.length() / 1024 / 1024; // Size in MB
+        
+        if (fileSize > 5) {
+          _showErrorSnackBar('Image size should be less than 5MB');
+          return;
+        }
+        
+        setState(() {
+          _profileImage = file;
+        });
+      }
+    } on PlatformException catch (e) {
+      _showErrorSnackBar('Failed to pick image: ${e.message}');
+    } catch (e) {
+      _showErrorSnackBar('Failed to pick image: ${e.toString()}');
+    }
   }
 
   String? _validateName(String? value) {
@@ -134,16 +173,19 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void _startEmailVerificationCheck() {
-    // Check every 3 seconds if email is verified
-    Stream.periodic(const Duration(seconds: 3)).listen((timer) async {
+    _verificationSubscription?.cancel();
+    _verificationSubscription = Stream.periodic(const Duration(seconds: 3)).listen((_) async {
       await FirebaseAuth.instance.currentUser?.reload();
       final user = FirebaseAuth.instance.currentUser;
       
       if (user != null && user.emailVerified) {
-        setState(() {
-          isEmailVerified = true;
-        });
-        _showSuccessSnackBar('Email verified successfully!');
+        _verificationSubscription?.cancel();
+        if (mounted) {
+          setState(() {
+            isEmailVerified = true;
+          });
+          _showSuccessSnackBar('Email verified successfully!');
+        }
       }
     });
   }
@@ -157,14 +199,48 @@ class _SignUpPageState extends State<SignUpPage> {
     setState(() => isLoading = true);
 
     try {
-      // User is already created and verified, just navigate to home
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        _showErrorSnackBar('User not found. Please try again.');
+        return;
+      }
+
+      // Convert image to Base64 if exists
+      String? profileImageBase64;
+      if (_profileImage != null) {
+        final bytes = await _profileImage!.readAsBytes();
+        profileImageBase64 = base64Encode(bytes);
+      }
+
+      // Create user data map
+      final userData = {
+        'uid': user.uid,
+        'name': nameController.text.trim(),
+        'email': emailController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'isActive': true,
+      };
+
+      // Add profile image if exists
+      if (profileImageBase64 != null) {
+        userData['profileImageBase64'] = profileImageBase64;
+      }
+
+      // Save user data to Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .set(userData, SetOptions(merge: true));
+
       _showSuccessSnackBar('Registration completed successfully!');
       
       if (mounted) {
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
-      _showErrorSnackBar('An unexpected error occurred. Please try again.');
+      _showErrorSnackBar('Failed to complete registration. Please try again.');
+      debugPrint('Error saving user data: $e');
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -265,7 +341,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           child: Container(
                             constraints: BoxConstraints(
                               maxWidth: 400,
-                              minHeight: isSmallScreen ? 500 : 580,
+                              minHeight: isSmallScreen ? 600 : 680,
                             ),
                             padding: EdgeInsets.all(isSmallScreen ? 24 : 32),
                             child: Form(
@@ -290,7 +366,11 @@ class _SignUpPageState extends State<SignUpPage> {
                                       color: isDarkMode ? Colors.white60 : Colors.black54,
                                     ),
                                   ),
-                                  SizedBox(height: isSmallScreen ? 24 : 32),
+                                  SizedBox(height: isSmallScreen ? 20 : 24),
+
+                                  // Profile Image Picker
+                                  _buildProfileImagePicker(isSmallScreen),
+                                  SizedBox(height: isSmallScreen ? 16 : 20),
 
                                   _buildTextField(
                                     controller: nameController,
@@ -379,7 +459,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                                 ),
                                                 const SizedBox(width: 8),
                                                 Text(
-                                                  isEmailVerified ? 'SIGN UP' : 'VERIFY EMAIL',
+                                                  isEmailVerified ? 'COMPLETE REGISTRATION' : 'SEND VERIFICATION',
                                                   style: TextStyle(
                                                     fontSize: isSmallScreen ? 16 : 18,
                                                     fontWeight: FontWeight.bold,
@@ -511,6 +591,38 @@ class _SignUpPageState extends State<SignUpPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildProfileImagePicker(bool isSmallScreen) {
+    return GestureDetector(
+      onTap: _pickProfileImage,
+      child: Container(
+        width: isSmallScreen ? 80 : 100,
+        height: isSmallScreen ? 80 : 100,
+        decoration: BoxDecoration(
+          color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isDarkMode ? Colors.white60 : Colors.grey[400]!,
+            width: 2,
+          ),
+        ),
+        child: _profileImage != null
+            ? ClipOval(
+                child: Image.file(
+                  _profileImage!,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+              )
+            : Icon(
+                Icons.add_a_photo,
+                size: isSmallScreen ? 30 : 40,
+                color: isDarkMode ? Colors.white60 : Colors.grey[600],
+              ),
       ),
     );
   }

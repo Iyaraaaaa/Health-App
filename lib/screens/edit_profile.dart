@@ -2,17 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-// Mock Database Helper for demonstration
-class DatabaseHelper {
-  Future<Map<String, dynamic>> getProfileByEmail(String email) async {
-    return {'name': 'John Doe', 'email': email, 'password': '123456'};
-  }
-
-  Future<void> insertProfile(Map<String, dynamic> profileData) async {
-    print('Profile data saved: $profileData');
-  }
-}
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditProfilePage extends StatefulWidget {
   final String userName;
@@ -27,14 +18,12 @@ class EditProfilePage extends StatefulWidget {
   });
 
   @override
-  // ignore: library_private_types_in_public_api
   _EditProfilePageState createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
   File? _image;
   final ImagePicker _picker = ImagePicker();
-  final DatabaseHelper _dbHelper = DatabaseHelper();
 
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -52,12 +41,34 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _loadProfile() async {
     setState(() => _isLoading = true);
     try {
-      final profile = await _dbHelper.getProfileByEmail(widget.userEmail);
-      nameController.text = profile['name'] ?? widget.userName;
-      emailController.text = profile['email'] ?? widget.userEmail;
-      passwordController.text = profile['password'] ?? '';
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      
+      if (currentUser != null) {
+        // Load from Firebase Firestore
+        final DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser.uid)
+            .get();
+        
+        if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+          nameController.text = userData['name'] ?? widget.userName;
+          emailController.text = userData['email'] ?? widget.userEmail;
+        } else {
+          // Use widget data if Firestore document doesn't exist
+          nameController.text = widget.userName;
+          emailController.text = widget.userEmail;
+        }
+      } else {
+        // Use widget data if no current user
+        nameController.text = widget.userName;
+        emailController.text = widget.userEmail;
+      }
     } catch (e) {
       _showErrorSnackbar('Failed to load profile: ${e.toString()}');
+      // Fallback to widget data
+      nameController.text = widget.userName;
+      emailController.text = widget.userEmail;
     } finally {
       setState(() => _isLoading = false);
     }
@@ -86,30 +97,64 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  // Dummy upload method just returns a placeholder URL after a delay
-  Future<String?> _uploadImage(File image) async {
-    setState(() => _isLoading = true);
-    await Future.delayed(const Duration(seconds: 2)); // simulate upload delay
-    setState(() => _isLoading = false);
-    return 'https://example.com/profile_image_placeholder.jpg';
-  }
-
-  // Dummy email update method
   Future<void> _updateEmail(String newEmail) async {
-    if (newEmail == widget.userEmail) {
-      _showErrorSnackbar('This is your current email address.');
-      return;
+    try {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        _showErrorSnackbar('User not authenticated');
+        return;
+      }
+
+      if (newEmail == currentUser.email) {
+        return; // No change needed
+      }
+
+      // Update email in Firebase Auth
+      await currentUser.updateEmail(newEmail);
+      await currentUser.sendEmailVerification();
+      
+      _showSuccessSnackbar('Email updated! Please verify your new email address.');
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Failed to update email';
+      if (e.code == 'requires-recent-login') {
+        errorMessage = 'Please log in again to update your email';
+      } else if (e.code == 'email-already-in-use') {
+        errorMessage = 'This email is already in use by another account';
+      } else if (e.code == 'invalid-email') {
+        errorMessage = 'Please enter a valid email address';
+      }
+      _showErrorSnackbar(errorMessage);
+    } catch (e) {
+      _showErrorSnackbar('Failed to update email: ${e.toString()}');
     }
-    _showSuccessSnackbar('Email update simulated (no real backend).');
   }
 
-  // Dummy password update method
   Future<void> _updatePassword(String newPassword) async {
-    if (newPassword.length < 6) {
-      _showErrorSnackbar('Password should be at least 6 characters');
-      return;
+    try {
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        _showErrorSnackbar('User not authenticated');
+        return;
+      }
+
+      if (newPassword.length < 6) {
+        _showErrorSnackbar('Password should be at least 6 characters');
+        return;
+      }
+
+      await currentUser.updatePassword(newPassword);
+      _showSuccessSnackbar('Password updated successfully!');
+    } on FirebaseAuthException catch (e) {
+      String errorMessage = 'Failed to update password';
+      if (e.code == 'requires-recent-login') {
+        errorMessage = 'Please log in again to update your password';
+      } else if (e.code == 'weak-password') {
+        errorMessage = 'Password is too weak';
+      }
+      _showErrorSnackbar(errorMessage);
+    } catch (e) {
+      _showErrorSnackbar('Failed to update password: ${e.toString()}');
     }
-    _showSuccessSnackbar('Password update simulated (no real backend).');
   }
 
   void _showErrorSnackbar(String message) {
@@ -125,12 +170,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _saveChanges() async {
-    if (nameController.text.isEmpty) {
+    if (nameController.text.trim().isEmpty) {
       _showErrorSnackbar('Name is required');
       return;
     }
 
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text)) {
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text.trim())) {
       _showErrorSnackbar('Please enter a valid email');
       return;
     }
@@ -138,36 +183,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() => _isLoading = true);
 
     try {
-      if (emailController.text != widget.userEmail) {
-        await _updateEmail(emailController.text);
+      final User? currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        _showErrorSnackbar('User not authenticated');
+        return;
       }
 
+      // Update email if changed
+      if (emailController.text.trim() != currentUser.email) {
+        await _updateEmail(emailController.text.trim());
+      }
+
+      // Update password if provided
       if (passwordController.text.isNotEmpty) {
         await _updatePassword(passwordController.text);
       }
 
-      String? imageUrl = widget.userImage;
-      if (_image != null) {
-        imageUrl = await _uploadImage(_image!);
-        if (imageUrl == null) return;
-      }
+      // Update display name in Firebase Auth
+      await currentUser.updateDisplayName(nameController.text.trim());
 
-      final profileData = {
+      // Update user data in Firestore
+      await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).set({
         'name': nameController.text.trim(),
         'email': emailController.text.trim(),
-        'imagePath': imageUrl ?? '',
-        'lastUpdated': DateTime.now().toIso8601String(),
-      };
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
 
-      await _dbHelper.insertProfile(profileData);
-
+      // Update SharedPreferences for offline access
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userName', nameController.text);
-      await prefs.setString('userEmail', emailController.text);
-      await prefs.setString('userImage', imageUrl ?? '');
+      await prefs.setString('userName', nameController.text.trim());
+      await prefs.setString('userEmail', emailController.text.trim());
 
       _showSuccessSnackbar('Profile updated successfully!');
+      
+      // Wait a bit for the success message to show, then navigate back
+      await Future.delayed(const Duration(seconds: 1));
       if (mounted) Navigator.pop(context, true);
+      
     } catch (e) {
       _showErrorSnackbar('Failed to save changes: ${e.toString()}');
     } finally {
@@ -212,9 +264,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
           radius: 60,
           backgroundColor: isDark ? Colors.grey[800] : Colors.blue.shade100,
           backgroundImage: _getImageProvider(),
-          child: _image == null && widget.userImage.isEmpty
-              ? const Icon(Icons.person, size: 50, color: Colors.white)
+          child: (_image == null && widget.userImage.isEmpty)
+              ? const Icon(Icons.person, size: 50, color: Colors.grey)
               : null,
+          onBackgroundImageError: (exception, stackTrace) {
+            debugPrint('Failed to load profile image: $exception');
+          },
         ),
         Positioned(
           child: FloatingActionButton.small(
@@ -228,14 +283,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   ImageProvider _getImageProvider() {
-    if (_image != null) return FileImage(_image!);
-    if (widget.userImage.isNotEmpty) {
+    if (_image != null) {
+      return FileImage(_image!);
+    } else if (widget.userImage.isNotEmpty) {
       if (widget.userImage.startsWith('http')) {
         return NetworkImage(widget.userImage);
+      } else {
+        return AssetImage(widget.userImage);
       }
-      return FileImage(File(widget.userImage));
+    } else {
+      return const AssetImage('assets/images/empty.jpg');
     }
-    return const AssetImage('assets/images/default_profile.png');
   }
 
   Widget _buildFormFields(bool isDark) {
@@ -247,7 +305,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         const SizedBox(height: 15),
         _customTextField(
           passwordController,
-          'Password',
+          'New Password (Optional)',
           Icons.lock,
           isDark,
           obscureText: !_isPasswordVisible,
@@ -261,25 +319,56 @@ class _EditProfilePageState extends State<EditProfilePage> {
             },
           ),
         ),
+        const SizedBox(height: 10),
+        Text(
+          'Leave password field empty if you don\'t want to change it',
+          style: TextStyle(
+            fontSize: 12,
+            color: isDark ? Colors.white60 : Colors.grey[600],
+            fontStyle: FontStyle.italic,
+          ),
+        ),
       ],
     );
   }
 
-  Widget _customTextField(TextEditingController controller, String label, IconData icon,
-      bool isDark, {bool obscureText = false, Widget? suffixIcon}) {
+  Widget _customTextField(
+    TextEditingController controller, 
+    String label, 
+    IconData icon,
+    bool isDark, {
+    bool obscureText = false, 
+    Widget? suffixIcon
+  }) {
     return TextField(
       controller: controller,
       obscureText: obscureText,
+      style: TextStyle(
+        color: isDark ? Colors.white : Colors.black87,
+      ),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: isDark ? Colors.white : Colors.blueAccent),
+        prefixIcon: Icon(
+          icon, 
+          color: isDark ? Colors.white60 : Colors.blueAccent
+        ),
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: isDark ? Colors.grey[800] : Colors.white,
+        labelStyle: TextStyle(
+          color: isDark ? Colors.white70 : Colors.grey[600],
+        ),
         contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: isDark ? Colors.blue : Colors.blueAccent,
+            width: 2,
+          ),
         ),
       ),
     );
@@ -289,18 +378,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _saveChanges,
+        onPressed: _isLoading ? null : _saveChanges,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 15),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          backgroundColor: isDark ? Colors.grey[800] : Colors.blueAccent,
+          backgroundColor: isDark ? Colors.blue[700] : Colors.blueAccent,
+          foregroundColor: Colors.white,
         ),
-        child: const Text(
-          'Save Changes',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Text(
+                'Save Changes',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }
