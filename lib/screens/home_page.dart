@@ -201,57 +201,51 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Widget _getProfileImage() {
     if (_userImage.isEmpty) {
-      return Icon(
-        Icons.account_circle,
-        size: 40,
-        color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+        child: Icon(
+          Icons.account_circle,
+          size: 32,
+          color: Colors.white,
+        ),
       );
     } else if (_userImage.startsWith('data:image')) {
       // Handle Base64 images
       try {
         final base64String = _userImage.split(',')[1];
         final bytes = base64Decode(base64String);
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Image.memory(
-            bytes,
-            width: 40,
-            height: 40,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Icon(
-                Icons.account_circle,
-                size: 40,
-                color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
-              );
-            },
-          ),
+        return CircleAvatar(
+          radius: 20,
+          backgroundColor: Colors.transparent,
+          backgroundImage: MemoryImage(bytes),
+          onBackgroundImageError: (exception, stackTrace) {
+            debugPrint('Error loading Base64 image: $exception');
+          },
+          child: Container(), // This ensures the image fills the entire circle
         );
       } catch (e) {
         debugPrint('Error decoding Base64 image: $e');
-        return Icon(
-          Icons.account_circle,
-          size: 40,
-          color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+        return CircleAvatar(
+          radius: 20,
+          backgroundColor: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
+          child: Icon(
+            Icons.account_circle,
+            size: 32,
+            color: Colors.white,
+          ),
         );
       }
     } else {
       // Handle network images
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Image.network(
-          _userImage,
-          width: 40,
-          height: 40,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(
-              Icons.account_circle,
-              size: 40,
-              color: widget.isDarkMode ? Colors.grey[400] : Colors.grey[600],
-            );
-          },
-        ),
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.transparent,
+        backgroundImage: NetworkImage(_userImage),
+        onBackgroundImageError: (exception, stackTrace) {
+          debugPrint('Error loading network image: $exception');
+        },
+        child: Container(), // This ensures the image fills the entire circle
       );
     }
   }
@@ -682,10 +676,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 accountName: Text(_userName,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 accountEmail: Text(_userEmail),
-                currentAccountPicture: CircleAvatar(
-                  backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                  child: _getProfileImage(),
-                ),
+                currentAccountPicture: _getProfileImage(),
                 decoration: BoxDecoration(
                   color: isDark ? Colors.grey[850] : Colors.blue,
                 ),

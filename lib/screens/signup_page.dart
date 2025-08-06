@@ -249,7 +249,7 @@ class _SignUpPageState extends State<SignUpPage> {
       _showSuccessSnackBar('Registration completed successfully!');
       
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/home');
+        Navigator.pushReplacementNamed(context, '/login');
       }
     } catch (e) {
       _showErrorSnackBar('Failed to complete registration. Please try again.');

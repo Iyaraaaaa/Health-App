@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,7 +24,8 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  File? _image;
+  File? _newImage;
+  String _currentImageData = '';
   final ImagePicker _picker = ImagePicker();
 
   final TextEditingController nameController = TextEditingController();
@@ -36,6 +39,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
   void initState() {
     super.initState();
     _loadProfile();
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadProfile() async {
@@ -54,21 +65,33 @@ class _EditProfilePageState extends State<EditProfilePage> {
           final userData = userDoc.data() as Map<String, dynamic>;
           nameController.text = userData['name'] ?? widget.userName;
           emailController.text = userData['email'] ?? widget.userEmail;
+          
+          // Handle profile image data
+          if (userData['profileImageBase64'] != null && userData['profileImageBase64'].toString().isNotEmpty) {
+            _currentImageData = 'data:image/jpeg;base64,${userData['profileImageBase64']}';
+          } else if (userData['imageUrl'] != null && userData['imageUrl'].toString().isNotEmpty) {
+            _currentImageData = userData['imageUrl'].toString();
+          } else {
+            _currentImageData = widget.userImage;
+          }
         } else {
           // Use widget data if Firestore document doesn't exist
           nameController.text = widget.userName;
           emailController.text = widget.userEmail;
+          _currentImageData = widget.userImage;
         }
       } else {
         // Use widget data if no current user
         nameController.text = widget.userName;
         emailController.text = widget.userEmail;
+        _currentImageData = widget.userImage;
       }
     } catch (e) {
       _showErrorSnackbar('Failed to load profile: ${e.toString()}');
       // Fallback to widget data
       nameController.text = widget.userName;
       emailController.text = widget.userEmail;
+      _currentImageData = widget.userImage;
     } finally {
       setState(() => _isLoading = false);
     }
@@ -90,7 +113,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
           _showErrorSnackbar('Image size should be less than 5MB');
           return;
         }
-        setState(() => _image = file);
+        setState(() {
+          _newImage = file;
+        });
       }
     } catch (e) {
       _showErrorSnackbar('Failed to pick image: ${e.toString()}');
@@ -158,14 +183,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   void _showErrorSnackbar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
     );
   }
 
   void _showSuccessSnackbar(String message) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green[600],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
     );
   }
 
@@ -202,17 +241,55 @@ class _EditProfilePageState extends State<EditProfilePage> {
       // Update display name in Firebase Auth
       await currentUser.updateDisplayName(nameController.text.trim());
 
-      // Update user data in Firestore
-      await FirebaseFirestore.instance.collection('users').doc(currentUser.uid).set({
+      // Prepare user data for Firestore
+      final Map<String, dynamic> userData = {
         'name': nameController.text.trim(),
         'email': emailController.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      };
 
-      // Update SharedPreferences for offline access
+      // Handle profile image update
+      String? updatedImageData;
+      if (_newImage != null) {
+        // New image selected - convert to Base64
+        final bytes = await _newImage!.readAsBytes();
+        final base64String = base64Encode(bytes);
+        userData['profileImageBase64'] = base64String;
+        userData['imageUrl'] = 'data:image/jpeg;base64,$base64String';
+        updatedImageData = 'data:image/jpeg;base64,$base64String';
+      } else {
+        // Keep existing image data
+        if (_currentImageData.isNotEmpty) {
+          if (_currentImageData.startsWith('data:image')) {
+            final base64String = _currentImageData.split(',')[1];
+            userData['profileImageBase64'] = base64String;
+            userData['imageUrl'] = _currentImageData;
+          } else {
+            userData['imageUrl'] = _currentImageData;
+            userData['profileImageBase64'] = '';
+          }
+        } else {
+          userData['profileImageBase64'] = '';
+          userData['imageUrl'] = '';
+        }
+        updatedImageData = _currentImageData;
+      }
+
+      // Update user data in Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(currentUser.uid)
+          .set(userData, SetOptions(merge: true));
+
+      // Update SharedPreferences for immediate access
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userName', nameController.text.trim());
       await prefs.setString('userEmail', emailController.text.trim());
+      if (updatedImageData != null && updatedImageData.isNotEmpty) {
+        await prefs.setString('userImage', updatedImageData);
+      } else {
+        await prefs.remove('userImage');
+      }
 
       _showSuccessSnackbar('Profile updated successfully!');
       
@@ -222,6 +299,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       
     } catch (e) {
       _showErrorSnackbar('Failed to save changes: ${e.toString()}');
+      debugPrint('Save changes error: $e');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -260,40 +338,76 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        CircleAvatar(
-          radius: 60,
-          backgroundColor: isDark ? Colors.grey[800] : Colors.blue.shade100,
-          backgroundImage: _getImageProvider(),
-          child: (_image == null && widget.userImage.isEmpty)
-              ? const Icon(Icons.person, size: 50, color: Colors.grey)
-              : null,
-          onBackgroundImageError: (exception, stackTrace) {
-            debugPrint('Failed to load profile image: $exception');
-          },
+        Container(
+          width: 120,
+          height: 120,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isDark ? Colors.grey[600]! : Colors.grey[300]!,
+              width: 2,
+            ),
+          ),
+          child: CircleAvatar(
+            radius: 58,
+            backgroundColor: isDark ? Colors.grey[800] : Colors.blue.shade100,
+            backgroundImage: _getImageProvider(),
+            child: _getImageProvider() == null
+                ? Icon(
+                    Icons.person,
+                    size: 50,
+                    color: isDark ? Colors.grey[400] : Colors.grey[600],
+                  )
+                : null,
+            onBackgroundImageError: (exception, stackTrace) {
+              debugPrint('Failed to load profile image: $exception');
+            },
+          ),
         ),
         Positioned(
-          child: FloatingActionButton.small(
-            onPressed: _pickImage,
-            backgroundColor: isDark ? Colors.grey[800] : Colors.blueAccent,
-            child: const Icon(Icons.camera_alt, size: 20),
+          bottom: 4,
+          right: 4,
+          child: Container(
+            decoration: BoxDecoration(
+              color: isDark ? Colors.grey[800] : Colors.blueAccent,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: IconButton(
+              onPressed: _pickImage,
+              icon: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
+              padding: const EdgeInsets.all(8),
+            ),
           ),
         ),
       ],
     );
   }
 
-  ImageProvider _getImageProvider() {
-    if (_image != null) {
-      return FileImage(_image!);
-    } else if (widget.userImage.isNotEmpty) {
-      if (widget.userImage.startsWith('http')) {
-        return NetworkImage(widget.userImage);
-      } else {
-        return AssetImage(widget.userImage);
+  ImageProvider? _getImageProvider() {
+    // Priority: New image -> Current image data -> Fallback to null
+    if (_newImage != null) {
+      return FileImage(_newImage!);
+    } else if (_currentImageData.isNotEmpty) {
+      if (_currentImageData.startsWith('data:image')) {
+        // Handle Base64 images
+        try {
+          final base64String = _currentImageData.split(',')[1];
+          final bytes = base64Decode(base64String);
+          return MemoryImage(bytes);
+        } catch (e) {
+          debugPrint('Error decoding Base64 image: $e');
+          return null;
+        }
+      } else if (_currentImageData.startsWith('http')) {
+        // Handle network images
+        return NetworkImage(_currentImageData);
+      } else if (_currentImageData.startsWith('assets/')) {
+        // Handle asset images
+        return AssetImage(_currentImageData);
       }
-    } else {
-      return const AssetImage('assets/images/empty.jpg');
     }
+    return null;
   }
 
   Widget _buildFormFields(bool isDark) {
@@ -312,7 +426,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           suffixIcon: IconButton(
             icon: Icon(
               _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
-              color: Colors.grey,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
             ),
             onPressed: () {
               setState(() => _isPasswordVisible = !_isPasswordVisible);
@@ -345,20 +459,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
       obscureText: obscureText,
       style: TextStyle(
         color: isDark ? Colors.white : Colors.black87,
+        fontSize: 16,
       ),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(
           icon, 
-          color: isDark ? Colors.white60 : Colors.blueAccent
+          color: isDark ? Colors.white60 : Colors.blueAccent,
+          size: 24,
         ),
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: isDark ? Colors.grey[800] : Colors.white,
         labelStyle: TextStyle(
           color: isDark ? Colors.white70 : Colors.grey[600],
+          fontSize: 16,
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -366,8 +483,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: isDark ? Colors.blue : Colors.blueAccent,
+            color: isDark ? Colors.blue[400]! : Colors.blueAccent,
             width: 2,
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(
+            color: Colors.red[400]!,
+            width: 1,
           ),
         ),
       ),
@@ -380,12 +504,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _saveChanges,
         style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 15),
+          padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           backgroundColor: isDark ? Colors.blue[700] : Colors.blueAccent,
           foregroundColor: Colors.white,
+          elevation: 8,
+          shadowColor: (isDark ? Colors.blue[700] : Colors.blueAccent)?.withOpacity(0.3),
         ),
         child: _isLoading
             ? const SizedBox(
@@ -398,7 +524,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               )
             : const Text(
                 'Save Changes',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.5),
               ),
       ),
     );
