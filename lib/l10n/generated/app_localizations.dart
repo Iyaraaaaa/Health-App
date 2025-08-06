@@ -700,6 +700,12 @@ abstract class AppLocalizations {
   /// **'Name'**
   String get name;
 
+  /// No description provided for @pleaseCheckNIC.
+  ///
+  /// In en, this message translates to:
+  /// **'Please check the NIC number and try again.'**
+  String get pleaseCheckNIC;
+
   /// Names of the ministry leadership team members
   ///
   /// In en, this message translates to:

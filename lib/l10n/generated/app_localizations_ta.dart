@@ -322,6 +322,10 @@ class AppLocalizationsTa extends AppLocalizations {
   String get name => 'பெயர்';
 
   @override
+  String get pleaseCheckNIC =>
+      'தயவுசெய்து தேசிய அடையாள எண் சரிபார்த்து மீண்டும் முயற்சிக்கவும்.';
+
+  @override
   String get leadershipTeam =>
       'அமைச்சர்: டாக்டர் நலிந்த ஜயதிஸ்ஸா\nதுணை அமைச்சர்: டாக்டர் ஹன்சக விஜேமுனி\nசெயலாளர்: டாக்டர் அனில் ஜயசிங்கே\nஇயக்குநர் பொதுவான: டாக்டர் அசேல குணவர்தன';
 }

@@ -100,6 +100,7 @@
   "welcomeToHealthMinistry": "Welcome to Health Ministry",
   "getYourInformation": "Get Your Information Here",
   "name": "Name",
+  "pleaseCheckNIC": "Please check the NIC number and try again.",
   "leadershipTeam": "Minister: Dr. Nalinda Jayatissa\nDeputy Minister: Dr. Hansaka Vijemuni\nSecretary: Dr. Anil Jayasighe\nDirector General: Dr. Asela Gunawaradena",
   "@leadershipTeam": {
     "description": "Names of the ministry leadership team members",

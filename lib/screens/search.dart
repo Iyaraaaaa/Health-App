@@ -13,19 +13,16 @@ class _SearchPageState extends State<SearchPage> {
   final TextEditingController searchController = TextEditingController();
   Map<String, String>? result;
 
-  // Firestore instance
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> searchById(String id) async {
     try {
-      // Search for a document with the given NIC number in the Firestore collection 'affirmations'
       final querySnapshot = await _firestore
           .collection('affirmations')
           .where('nic', isEqualTo: id)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        // Fetch the first document that matches
         var data = querySnapshot.docs[0].data();
         setState(() {
           result = {
@@ -52,16 +49,15 @@ class _SearchPageState extends State<SearchPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : Colors.grey[100], // Background color for dark/light mode
+      backgroundColor: isDark ? Colors.black : Colors.grey[100],
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(  // Ensures that if there's a lot of content, it scrolls
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title Section
               Text(
-                loc.getYourInformation, // Using localized text
+                loc.getYourInformation,
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -69,26 +65,17 @@ class _SearchPageState extends State<SearchPage> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Instructions Section
               Text(
-                loc.enterNICNumber, // Using localized text
+                loc.enterNICNumber,
                 style: TextStyle(
                   fontSize: 18,
                   color: isDark ? Colors.white70 : Colors.blueGrey[800],
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Search Input Field
               _buildSearchField(isDark, loc),
-
               const SizedBox(height: 20),
-
-              // Results Section
               _buildResultsSection(isDark, loc),
-
-              // Submit Button (Search Button)
               const SizedBox(height: 20),
               _buildSearchButton(loc),
             ],
@@ -98,19 +85,18 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  // This method will build the search field with a modern look
   Widget _buildSearchField(bool isDark, AppLocalizations loc) {
     return TextField(
       controller: searchController,
       textInputAction: TextInputAction.search,
       onSubmitted: searchById,
       decoration: InputDecoration(
-        labelText: loc.enterNICNumber, // Localized label
-        hintText: "e.g., 945061685V", // NIC number hint
+        labelText: loc.enterNICNumber,
+        hintText: "e.g., 945061685V",
         prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),  // Rounded corners
-          borderSide: BorderSide(color: Colors.blueAccent, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Colors.blueAccent, width: 2),
         ),
         filled: true,
         fillColor: isDark ? Colors.grey[800] : Colors.white,
@@ -120,53 +106,73 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  // This method builds the result card when information is found
   Widget _buildResultsSection(bool isDark, AppLocalizations loc) {
-    return result != null
-        ? Card(
-            elevation: 8,
-            color: isDark ? Colors.grey[850] : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.person, color: Colors.blueAccent),
-                    title: Text(
-                      result!['name'] ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                    ),
-                    subtitle: Text("${loc.designation}: ${result!['designation']}"),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: const Icon(Icons.badge, color: Colors.blueAccent),
-                    title: Text("${loc.nicNumber}: ${result!['nic']}"),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.local_hospital, color: Colors.blueAccent),
-                    title: Text("${loc.serviceStation}: ${result!['station']}"),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.date_range, color: Colors.blueAccent),
-                    title: Text("${loc.letterDate}: ${result!['letterDate']}"),
-                  ),
-                ],
+    if (result != null) {
+      return Card(
+        elevation: 8,
+        color: isDark ? Colors.grey[850] : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.person, color: Colors.blueAccent),
+                title: Text(
+                  result!['name'] ?? '',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                subtitle: Text("${loc.designation}: ${result!['designation']}"),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.badge, color: Colors.blueAccent),
+                title: Text("${loc.nicNumber}: ${result!['nic']}"),
+              ),
+              ListTile(
+                leading: const Icon(Icons.local_hospital, color: Colors.blueAccent),
+                title: Text("${loc.serviceStation}: ${result!['station']}"),
+              ),
+              ListTile(
+                leading: const Icon(Icons.date_range, color: Colors.blueAccent),
+                title: Text("${loc.letterDate}: ${result!['letterDate']}"),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (searchController.text.isNotEmpty) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 40),
+        child: Column(
+          children: [
+            Icon(Icons.search_off, size: 72, color: Colors.grey[500]),
+            const SizedBox(height: 12),
+            Text(
+              loc.noResultsFound,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white60 : Colors.black54,
               ),
             ),
-          )
-        : Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: Text(
-              loc.noResultsFound, // Localized "no results" message
-              style: const TextStyle(fontSize: 16, color: Colors.redAccent),
+            const SizedBox(height: 6),
+            Text(
+              loc.pleaseCheckNIC, // <- Add this key in localization
+              style: TextStyle(
+                fontSize: 14,
+                color: isDark ? Colors.white38 : Colors.black38,
+              ),
             ),
-          );
+          ],
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 
-  // This method builds the search button with enhanced styling
   Widget _buildSearchButton(AppLocalizations loc) {
     return Center(
       child: ElevatedButton.icon(

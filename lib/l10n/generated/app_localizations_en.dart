@@ -322,6 +322,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get name => 'Name';
 
   @override
+  String get pleaseCheckNIC => 'Please check the NIC number and try again.';
+
+  @override
   String get leadershipTeam =>
       'Minister: Dr. Nalinda Jayatissa\nDeputy Minister: Dr. Hansaka Vijemuni\nSecretary: Dr. Anil Jayasighe\nDirector General: Dr. Asela Gunawaradena';
 }

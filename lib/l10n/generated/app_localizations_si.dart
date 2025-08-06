@@ -322,6 +322,10 @@ class AppLocalizationsSi extends AppLocalizations {
   String get name => 'නම';
 
   @override
+  String get pleaseCheckNIC =>
+      'කරුණාකර ජා.හැ.අංකය පරීක්ෂා කර නැවත උත්සාහ කරන්න.';
+
+  @override
   String get leadershipTeam =>
       'අමාත්‍ය: වෛද්‍ය නලින්ද ජයතිස්ස\nඋප අමාත්‍ය: වෛද්‍ය හංසක විජේමුණි\nලේකම්: වෛද්‍ය අනිල් ජයසිංහ\nඅධ්‍යක්ෂ ජනරාල්: වෛද්‍ය අසේල ගුණවර්ධන';
 }

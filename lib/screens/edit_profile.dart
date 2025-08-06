@@ -8,15 +8,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditProfilePage extends StatefulWidget {
-  final String userName;
-  final String userEmail;
-  final String userImage;
+  final String? userName;  // Nullable for Google Sign-In users
+  final String userEmail;  // Email is always available
+  final String? userImage; // Nullable for users without profile images
 
   const EditProfilePage({
     super.key,
-    required this.userName,
+    this.userName,
     required this.userEmail,
-    required this.userImage,
+    this.userImage,
   });
 
   @override
@@ -25,7 +25,7 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   File? _newImage;
-  String _currentImageData = '';
+  String? _currentImageData; // Made nullable to handle no image cases
   final ImagePicker _picker = ImagePicker();
 
   final TextEditingController nameController = TextEditingController();
@@ -34,6 +34,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
+  bool _hasImageError = false; // Track image loading errors
 
   @override
   void initState() {
@@ -55,7 +56,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       final User? currentUser = FirebaseAuth.instance.currentUser;
       
       if (currentUser != null) {
-        // Load from Firebase Firestore
+        // Load from Firebase Firestore first
         final DocumentSnapshot userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUser.uid)
@@ -63,38 +64,178 @@ class _EditProfilePageState extends State<EditProfilePage> {
         
         if (userDoc.exists) {
           final userData = userDoc.data() as Map<String, dynamic>;
-          nameController.text = userData['name'] ?? widget.userName;
-          emailController.text = userData['email'] ?? widget.userEmail;
           
-          // Handle profile image data
-          if (userData['profileImageBase64'] != null && userData['profileImageBase64'].toString().isNotEmpty) {
-            _currentImageData = 'data:image/jpeg;base64,${userData['profileImageBase64']}';
-          } else if (userData['imageUrl'] != null && userData['imageUrl'].toString().isNotEmpty) {
-            _currentImageData = userData['imageUrl'].toString();
-          } else {
-            _currentImageData = widget.userImage;
-          }
+          // Handle name safely
+          _loadNameSafely(userData, currentUser);
+          
+          // Handle email safely
+          _loadEmailSafely(userData, currentUser);
+          
+          // Handle profile image data safely
+          _loadImageSafely(userData, currentUser);
         } else {
-          // Use widget data if Firestore document doesn't exist
-          nameController.text = widget.userName;
-          emailController.text = widget.userEmail;
-          _currentImageData = widget.userImage;
+          // Use Firebase Auth and widget data if Firestore document doesn't exist
+          _loadFromFirebaseAuthAndWidget(currentUser);
         }
       } else {
         // Use widget data if no current user
-        nameController.text = widget.userName;
-        emailController.text = widget.userEmail;
-        _currentImageData = widget.userImage;
+        _loadFromWidget();
       }
     } catch (e) {
-      _showErrorSnackbar('Failed to load profile: ${e.toString()}');
+      debugPrint('Profile load error: $e');
+      _showErrorSnackbar('Failed to load profile data');
       // Fallback to widget data
-      nameController.text = widget.userName;
-      emailController.text = widget.userEmail;
-      _currentImageData = widget.userImage;
+      _loadFromWidget();
     } finally {
       setState(() => _isLoading = false);
     }
+  }
+
+  void _loadNameSafely(Map<String, dynamic>? userData, User currentUser) {
+    try {
+      String displayName = '';
+      
+      // Priority: Firestore -> Firebase Auth -> Widget -> Email extraction
+      if (userData != null && userData['name'] != null && 
+          userData['name'].toString().trim().isNotEmpty) {
+        displayName = userData['name'].toString().trim();
+      } else if (currentUser.displayName != null && 
+                 currentUser.displayName!.trim().isNotEmpty) {
+        displayName = currentUser.displayName!.trim();
+      } else if (widget.userName != null && widget.userName!.trim().isNotEmpty) {
+        displayName = widget.userName!.trim();
+      } else {
+        displayName = _extractNameFromEmail(currentUser.email ?? widget.userEmail);
+      }
+      
+      nameController.text = displayName;
+    } catch (e) {
+      debugPrint('Name loading error: $e');
+      nameController.text = _extractNameFromEmail(widget.userEmail);
+    }
+  }
+
+  void _loadEmailSafely(Map<String, dynamic>? userData, User currentUser) {
+    try {
+      String email = '';
+      
+      // Priority: Firestore -> Firebase Auth -> Widget
+      if (userData != null && userData['email'] != null && 
+          userData['email'].toString().trim().isNotEmpty) {
+        email = userData['email'].toString().trim();
+      } else if (currentUser.email != null && currentUser.email!.trim().isNotEmpty) {
+        email = currentUser.email!.trim();
+      } else {
+        email = widget.userEmail;
+      }
+      
+      emailController.text = email;
+    } catch (e) {
+      debugPrint('Email loading error: $e');
+      emailController.text = widget.userEmail;
+    }
+  }
+
+  void _loadImageSafely(Map<String, dynamic>? userData, User currentUser) {
+    try {
+      String? imageData;
+      
+      // Priority: Firestore profileImageBase64 -> Firestore imageUrl -> Firebase Auth photoURL -> Widget
+      if (userData != null) {
+        if (userData['profileImageBase64'] != null && 
+            userData['profileImageBase64'].toString().trim().isNotEmpty) {
+          imageData = 'data:image/jpeg;base64,${userData['profileImageBase64']}';
+        } else if (userData['imageUrl'] != null && 
+                   userData['imageUrl'].toString().trim().isNotEmpty) {
+          imageData = userData['imageUrl'].toString().trim();
+        }
+      }
+      
+      // Fallback to Firebase Auth photo URL
+      if ((imageData == null || imageData.isEmpty) && 
+          currentUser.photoURL != null && currentUser.photoURL!.trim().isNotEmpty) {
+        imageData = currentUser.photoURL!.trim();
+      }
+      
+      // Fallback to widget data
+      if ((imageData == null || imageData.isEmpty) && 
+          widget.userImage != null && widget.userImage!.trim().isNotEmpty) {
+        imageData = widget.userImage!.trim();
+      }
+      
+      // Set the image data (can be null)
+      _currentImageData = (imageData != null && imageData.isNotEmpty) ? imageData : null;
+      _hasImageError = false; // Reset error state
+      
+    } catch (e) {
+      debugPrint('Image loading error: $e');
+      _currentImageData = null;
+      _hasImageError = false;
+    }
+  }
+
+  void _loadFromFirebaseAuthAndWidget(User currentUser) {
+    try {
+      // Handle name safely
+      if (currentUser.displayName != null && currentUser.displayName!.trim().isNotEmpty) {
+        nameController.text = currentUser.displayName!.trim();
+      } else if (widget.userName != null && widget.userName!.trim().isNotEmpty) {
+        nameController.text = widget.userName!.trim();
+      } else {
+        nameController.text = _extractNameFromEmail(currentUser.email ?? widget.userEmail);
+      }
+      
+      // Handle email safely
+      emailController.text = currentUser.email ?? widget.userEmail;
+      
+      // Handle image safely
+      String? imageData;
+      if (currentUser.photoURL != null && currentUser.photoURL!.trim().isNotEmpty) {
+        imageData = currentUser.photoURL!.trim();
+      } else if (widget.userImage != null && widget.userImage!.trim().isNotEmpty) {
+        imageData = widget.userImage!.trim();
+      }
+      
+      _currentImageData = imageData;
+      _hasImageError = false;
+    } catch (e) {
+      debugPrint('Firebase Auth loading error: $e');
+      _loadFromWidget();
+    }
+  }
+
+  void _loadFromWidget() {
+    try {
+      nameController.text = widget.userName?.trim() ?? _extractNameFromEmail(widget.userEmail);
+      emailController.text = widget.userEmail;
+      _currentImageData = (widget.userImage != null && widget.userImage!.trim().isNotEmpty) 
+          ? widget.userImage!.trim() 
+          : null;
+      _hasImageError = false;
+    } catch (e) {
+      debugPrint('Widget loading error: $e');
+      nameController.text = _extractNameFromEmail(widget.userEmail);
+      emailController.text = widget.userEmail;
+      _currentImageData = null;
+      _hasImageError = false;
+    }
+  }
+
+  String _extractNameFromEmail(String email) {
+    try {
+      if (email.contains('@')) {
+        String namePart = email.split('@')[0];
+        namePart = namePart.replaceAll(RegExp(r'[._]'), ' ');
+        return namePart.split(' ')
+            .map((word) => word.isNotEmpty 
+                ? word[0].toUpperCase() + word.substring(1).toLowerCase() 
+                : word)
+            .join(' ');
+      }
+    } catch (e) {
+      debugPrint('Name extraction error: $e');
+    }
+    return 'User'; // Safe fallback
   }
 
   Future<void> _pickImage() async {
@@ -115,11 +256,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
         }
         setState(() {
           _newImage = file;
+          _hasImageError = false; // Reset error state when new image is selected
         });
       }
     } catch (e) {
-      _showErrorSnackbar('Failed to pick image: ${e.toString()}');
+      debugPrint('Image picker error: $e');
+      _showErrorSnackbar('Failed to pick image');
     }
+  }
+
+  Future<void> _removeImage() async {
+    setState(() {
+      _newImage = null;
+      _currentImageData = null;
+      _hasImageError = false;
+    });
+    _showSuccessSnackbar('Profile photo removed');
   }
 
   Future<void> _updateEmail(String newEmail) async {
@@ -134,7 +286,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         return; // No change needed
       }
 
-      // Update email in Firebase Auth
       await currentUser.updateEmail(newEmail);
       await currentUser.sendEmailVerification();
       
@@ -150,7 +301,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
       _showErrorSnackbar(errorMessage);
     } catch (e) {
-      _showErrorSnackbar('Failed to update email: ${e.toString()}');
+      debugPrint('Email update error: $e');
+      _showErrorSnackbar('Failed to update email');
     }
   }
 
@@ -178,7 +330,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
       _showErrorSnackbar(errorMessage);
     } catch (e) {
-      _showErrorSnackbar('Failed to update password: ${e.toString()}');
+      debugPrint('Password update error: $e');
+      _showErrorSnackbar('Failed to update password');
     }
   }
 
@@ -209,12 +362,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _saveChanges() async {
-    if (nameController.text.trim().isEmpty) {
+    final trimmedName = nameController.text.trim();
+    final trimmedEmail = emailController.text.trim();
+
+    // Validation
+    if (trimmedName.isEmpty) {
       _showErrorSnackbar('Name is required');
       return;
     }
 
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(emailController.text.trim())) {
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(trimmedEmail)) {
       _showErrorSnackbar('Please enter a valid email');
       return;
     }
@@ -229,8 +386,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
 
       // Update email if changed
-      if (emailController.text.trim() != currentUser.email) {
-        await _updateEmail(emailController.text.trim());
+      if (trimmedEmail != currentUser.email) {
+        await _updateEmail(trimmedEmail);
       }
 
       // Update password if provided
@@ -239,40 +396,60 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
 
       // Update display name in Firebase Auth
-      await currentUser.updateDisplayName(nameController.text.trim());
+      await currentUser.updateDisplayName(trimmedName);
 
       // Prepare user data for Firestore
       final Map<String, dynamic> userData = {
-        'name': nameController.text.trim(),
-        'email': emailController.text.trim(),
+        'uid': currentUser.uid,
+        'name': trimmedName,
+        'email': trimmedEmail,
         'updatedAt': FieldValue.serverTimestamp(),
+        'isActive': true,
       };
 
-      // Handle profile image update
-      String? updatedImageData;
-      if (_newImage != null) {
-        // New image selected - convert to Base64
-        final bytes = await _newImage!.readAsBytes();
-        final base64String = base64Encode(bytes);
-        userData['profileImageBase64'] = base64String;
-        userData['imageUrl'] = 'data:image/jpeg;base64,$base64String';
-        updatedImageData = 'data:image/jpeg;base64,$base64String';
-      } else {
-        // Keep existing image data
-        if (_currentImageData.isNotEmpty) {
-          if (_currentImageData.startsWith('data:image')) {
-            final base64String = _currentImageData.split(',')[1];
-            userData['profileImageBase64'] = base64String;
-            userData['imageUrl'] = _currentImageData;
+      // Handle profile image update safely
+      String? finalImageData;
+      try {
+        if (_newImage != null) {
+          // New image selected - convert to Base64
+          final bytes = await _newImage!.readAsBytes();
+          final base64String = base64Encode(bytes);
+          userData['profileImageBase64'] = base64String;
+          userData['imageUrl'] = 'data:image/jpeg;base64,$base64String';
+          finalImageData = 'data:image/jpeg;base64,$base64String';
+        } else if (_currentImageData != null && _currentImageData!.isNotEmpty) {
+          // Keep existing image data
+          if (_currentImageData!.startsWith('data:image')) {
+            try {
+              final base64String = _currentImageData!.split(',')[1];
+              userData['profileImageBase64'] = base64String;
+              userData['imageUrl'] = _currentImageData!;
+              finalImageData = _currentImageData!;
+            } catch (e) {
+              debugPrint('Error processing base64 image: $e');
+              // If base64 processing fails, store as URL
+              userData['profileImageBase64'] = '';
+              userData['imageUrl'] = _currentImageData!;
+              finalImageData = _currentImageData!;
+            }
           } else {
-            userData['imageUrl'] = _currentImageData;
+            // Store as URL (Google photo, etc.)
             userData['profileImageBase64'] = '';
+            userData['imageUrl'] = _currentImageData!;
+            finalImageData = _currentImageData!;
           }
         } else {
+          // No image - explicitly set empty values
           userData['profileImageBase64'] = '';
           userData['imageUrl'] = '';
+          finalImageData = null;
         }
-        updatedImageData = _currentImageData;
+      } catch (e) {
+        debugPrint('Image processing error: $e');
+        // Safe fallback - no image
+        userData['profileImageBase64'] = '';
+        userData['imageUrl'] = '';
+        finalImageData = null;
       }
 
       // Update user data in Firestore
@@ -283,23 +460,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       // Update SharedPreferences for immediate access
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userName', nameController.text.trim());
-      await prefs.setString('userEmail', emailController.text.trim());
-      if (updatedImageData != null && updatedImageData.isNotEmpty) {
-        await prefs.setString('userImage', updatedImageData);
+      await prefs.setString('userId', currentUser.uid);
+      await prefs.setString('userName', trimmedName);
+      await prefs.setString('userEmail', trimmedEmail);
+      
+      if (finalImageData != null && finalImageData.isNotEmpty) {
+        await prefs.setString('userImage', finalImageData);
       } else {
-        await prefs.remove('userImage');
+        await prefs.remove('userImage'); // Remove if no image
       }
 
       _showSuccessSnackbar('Profile updated successfully!');
       
-      // Wait a bit for the success message to show, then navigate back
+      // Wait for success message, then navigate back
       await Future.delayed(const Duration(seconds: 1));
       if (mounted) Navigator.pop(context, true);
       
     } catch (e) {
-      _showErrorSnackbar('Failed to save changes: ${e.toString()}');
       debugPrint('Save changes error: $e');
+      _showErrorSnackbar('Failed to save changes');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -348,22 +527,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
               width: 2,
             ),
           ),
-          child: CircleAvatar(
-            radius: 58,
-            backgroundColor: isDark ? Colors.grey[800] : Colors.blue.shade100,
-            backgroundImage: _getImageProvider(),
-            child: _getImageProvider() == null
-                ? Icon(
-                    Icons.person,
-                    size: 50,
-                    color: isDark ? Colors.grey[400] : Colors.grey[600],
-                  )
-                : null,
-            onBackgroundImageError: (exception, stackTrace) {
-              debugPrint('Failed to load profile image: $exception');
-            },
-          ),
+          child: _buildCircleAvatar(isDark),
         ),
+        // Camera button
         Positioned(
           bottom: 4,
           right: 4,
@@ -375,39 +541,114 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             child: IconButton(
               onPressed: _pickImage,
-              icon: const Icon(Icons.camera_alt, size: 20, color: Colors.white),
-              padding: const EdgeInsets.all(8),
+              icon: const Icon(Icons.camera_alt, size: 18, color: Colors.white),
+              padding: const EdgeInsets.all(6),
+              tooltip: 'Change Profile Picture',
             ),
           ),
         ),
+        // Remove button (only show if there's an image)
+        if (_newImage != null || (_currentImageData != null && _currentImageData!.isNotEmpty))
+          Positioned(
+            bottom: 4,
+            left: 4,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.red[600],
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: IconButton(
+                onPressed: _removeImage,
+                icon: const Icon(Icons.close, size: 18, color: Colors.white),
+                padding: const EdgeInsets.all(6),
+                tooltip: 'Remove Profile Picture',
+              ),
+            ),
+          ),
       ],
     );
   }
 
-  ImageProvider? _getImageProvider() {
-    // Priority: New image -> Current image data -> Fallback to null
-    if (_newImage != null) {
-      return FileImage(_newImage!);
-    } else if (_currentImageData.isNotEmpty) {
-      if (_currentImageData.startsWith('data:image')) {
-        // Handle Base64 images
-        try {
-          final base64String = _currentImageData.split(',')[1];
-          final bytes = base64Decode(base64String);
-          return MemoryImage(bytes);
-        } catch (e) {
-          debugPrint('Error decoding Base64 image: $e');
-          return null;
-        }
-      } else if (_currentImageData.startsWith('http')) {
-        // Handle network images
-        return NetworkImage(_currentImageData);
-      } else if (_currentImageData.startsWith('assets/')) {
-        // Handle asset images
-        return AssetImage(_currentImageData);
-      }
+  Widget _buildCircleAvatar(bool isDark) {
+    final imageProvider = _getImageProvider();
+    
+    // If we have a valid image and no error, show image only
+    if (imageProvider != null && !_hasImageError) {
+      return CircleAvatar(
+        radius: 58,
+        backgroundColor: isDark ? Colors.grey[800] : Colors.blue.shade100,
+        backgroundImage: imageProvider,
+        onBackgroundImageError: (exception, stackTrace) {
+          debugPrint('Profile image error: $exception');
+          if (mounted) {
+            setState(() {
+              _hasImageError = true;
+            });
+          }
+        },
+      );
     }
-    return null;
+    
+    // If no image or error, show placeholder child only
+    return CircleAvatar(
+      radius: 58,
+      backgroundColor: isDark ? Colors.grey[800] : Colors.blue.shade100,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.person,
+            size: 40,
+            color: isDark ? Colors.grey[400] : Colors.grey[600],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            _hasImageError ? 'Failed to Load' : 'No Photo',
+            style: TextStyle(
+              fontSize: 12,
+              color: isDark ? Colors.grey[400] : Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  ImageProvider? _getImageProvider() {
+    try {
+      // Priority: New image -> Current image data -> null
+      if (_newImage != null) {
+        return FileImage(_newImage!);
+      } 
+      
+      if (_currentImageData != null && _currentImageData!.isNotEmpty && !_hasImageError) {
+        if (_currentImageData!.startsWith('data:image')) {
+          // Handle Base64 images safely
+          try {
+            final base64String = _currentImageData!.split(',')[1];
+            final bytes = base64Decode(base64String);
+            return MemoryImage(bytes);
+          } catch (e) {
+            debugPrint('Base64 decode error: $e');
+            setState(() => _hasImageError = true);
+            return null;
+          }
+        } else if (_currentImageData!.startsWith('http')) {
+          // Handle network images (Google Sign-In profile pictures)
+          return NetworkImage(_currentImageData!);
+        } else if (_currentImageData!.startsWith('assets/')) {
+          // Handle asset images
+          return AssetImage(_currentImageData!);
+        }
+      }
+    } catch (e) {
+      debugPrint('Image provider error: $e');
+      setState(() => _hasImageError = true);
+    }
+    return null; // Safe return for no image
   }
 
   Widget _buildFormFields(bool isDark) {
@@ -434,12 +675,50 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         ),
         const SizedBox(height: 10),
-        Text(
-          'Leave password field empty if you don\'t want to change it',
-          style: TextStyle(
-            fontSize: 12,
-            color: isDark ? Colors.white60 : Colors.grey[600],
-            fontStyle: FontStyle.italic,
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey[900]?.withOpacity(0.5) : Colors.blue[50],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isDark ? Colors.grey[700]! : Colors.blue[200]!,
+              width: 1,
+            ),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: isDark ? Colors.blue[300] : Colors.blue[600],
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Profile Tips:',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.blue[300] : Colors.blue[700],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                '• Profile photo is optional - you can add, change, or remove it anytime\n'
+                '• Leave password field empty if you don\'t want to change it\n'
+                '• All changes will be saved automatically',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white70 : Colors.grey[600],
+                  height: 1.3,
+                ),
+              ),
+            ],
           ),
         ),
       ],
