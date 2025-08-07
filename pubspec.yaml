@@ -31,7 +31,8 @@ dependencies:
   firebase_storage: any
   firebase_dynamic_links: ^6.1.10
   google_sign_in: ^6.1.0
-
+  csv: ^6.0.0
+  file_picker: ^8.0.0+1
 
 dev_dependencies:
   flutter_test:
@@ -64,6 +65,7 @@ flutter:
     - assets/images/ab2.png
     - assets/images/ab3.png
     - assets/images/Google.png
+    - assets/Health.csv
 
   fonts:
     - family: NotoSans
