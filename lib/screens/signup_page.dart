@@ -31,7 +31,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  bool isLoading = false;
+  // Separate loading states for each button
+  bool isEmailLoading = false;
+  bool isGoogleLoading = false;
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
   bool isEmailVerified = false;
@@ -70,7 +72,7 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> _signUpWithGoogle() async {
-    setState(() => isLoading = true);
+    setState(() => isGoogleLoading = true);
 
     try {
       // Sign out any existing Google account first
@@ -81,7 +83,7 @@ class _SignUpPageState extends State<SignUpPage> {
       
       if (googleUser == null) {
         // User canceled the sign-in
-        setState(() => isLoading = false);
+        setState(() => isGoogleLoading = false);
         return;
       }
 
@@ -123,7 +125,7 @@ class _SignUpPageState extends State<SignUpPage> {
     } catch (e) {
       _showErrorSnackBar('Google Sign-In failed: ${e.toString()}');
     } finally {
-      setState(() => isLoading = false);
+      setState(() => isGoogleLoading = false);
     }
   }
 
@@ -223,7 +225,7 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
-    setState(() => isLoading = true);
+    setState(() => isEmailLoading = true);
 
     try {
       UserCredential userCredential = await FirebaseAuth.instance
@@ -255,7 +257,7 @@ class _SignUpPageState extends State<SignUpPage> {
     } catch (e) {
       _showErrorSnackBar('An unexpected error occurred. Please try again.');
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) setState(() => isEmailLoading = false);
     }
   }
 
@@ -287,7 +289,7 @@ class _SignUpPageState extends State<SignUpPage> {
       return;
     }
 
-    setState(() => isLoading = true);
+    setState(() => isEmailLoading = true);
 
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -357,7 +359,7 @@ class _SignUpPageState extends State<SignUpPage> {
       _showErrorSnackBar('Failed to complete registration. Please try again.');
       debugPrint('Error saving user data: $e');
     } finally {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) setState(() => isEmailLoading = false);
     }
   }
 
@@ -393,6 +395,9 @@ class _SignUpPageState extends State<SignUpPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenHeight < 700;
     final isVerySmallScreen = screenHeight < 600;
+
+    // Check if any loading is happening for UI interactions
+    final isAnyLoading = isEmailLoading || isGoogleLoading;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -491,73 +496,6 @@ class _SignUpPageState extends State<SignUpPage> {
                                         ),
                                         SizedBox(height: isVerySmallScreen ? 12 : (isSmallScreen ? 16 : 20)),
 
-                                        // Google Sign-In Button
-                                        if (!isGoogleSignUp) ...[
-                                          SizedBox(
-                                            width: double.infinity,
-                                            height: isVerySmallScreen ? 42 : (isSmallScreen ? 45 : 52),
-                                            child: OutlinedButton.icon(
-                                              onPressed: isLoading ? null : _signUpWithGoogle,
-                                              style: OutlinedButton.styleFrom(
-                                                backgroundColor: isDarkMode ? Colors.white : Colors.white,
-                                                foregroundColor: Colors.black87,
-                                                side: BorderSide(
-                                                  color: isDarkMode ? Colors.white : Colors.grey[300]!,
-                                                  width: 1,
-                                                ),
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(12),
-                                                ),
-                                              ),
-                                              icon: Image.asset(
-                                                'assets/images/google_logo.png', // You'll need to add this asset
-                                                height: isVerySmallScreen ? 16 : (isSmallScreen ? 18 : 20),
-                                                width: isVerySmallScreen ? 16 : (isSmallScreen ? 18 : 20),
-                                                errorBuilder: (context, error, stackTrace) => Icon(
-                                                  Icons.login,
-                                                  size: isVerySmallScreen ? 16 : (isSmallScreen ? 18 : 20),
-                                                  color: Colors.blue,
-                                                ),
-                                              ),
-                                              label: Text(
-                                                'Sign up with Google',
-                                                style: TextStyle(
-                                                  fontSize: isVerySmallScreen ? 12 : (isSmallScreen ? 14 : 16),
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(height: isVerySmallScreen ? 12 : (isSmallScreen ? 16 : 20)),
-
-                                          // Divider
-                                          Row(
-                                            children: [
-                                              Expanded(
-                                                child: Divider(
-                                                  color: isDarkMode ? Colors.white30 : Colors.grey[400],
-                                                ),
-                                              ),
-                                              Padding(
-                                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                                child: Text(
-                                                  'OR',
-                                                  style: TextStyle(
-                                                    color: isDarkMode ? Colors.white60 : Colors.grey[600],
-                                                    fontSize: isVerySmallScreen ? 12 : (isSmallScreen ? 13 : 14),
-                                                  ),
-                                                ),
-                                              ),
-                                              Expanded(
-                                                child: Divider(
-                                                  color: isDarkMode ? Colors.white30 : Colors.grey[400],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(height: isVerySmallScreen ? 12 : (isSmallScreen ? 16 : 20)),
-                                        ],
-
                                         // Profile Image Picker
                                         _buildProfileImagePicker(isSmallScreen, isVerySmallScreen),
                                         SizedBox(height: isVerySmallScreen ? 12 : (isSmallScreen ? 14 : 16)),
@@ -616,12 +554,13 @@ class _SignUpPageState extends State<SignUpPage> {
                                           SizedBox(height: isVerySmallScreen ? 16 : (isSmallScreen ? 20 : 24)),
                                         ],
 
-                                        // Main action button
-                                        SizedBox(
+                                        // Main action button (Email signup/verification)
+                                        AnimatedContainer(
+                                          duration: const Duration(milliseconds: 200),
                                           width: double.infinity,
                                           height: isVerySmallScreen ? 42 : (isSmallScreen ? 45 : 52),
                                           child: ElevatedButton(
-                                            onPressed: isLoading 
+                                            onPressed: isAnyLoading 
                                                 ? null 
                                                 : (isEmailVerified || isGoogleSignUp ? _registerUser : _sendVerificationEmail),
                                             style: ElevatedButton.styleFrom(
@@ -637,7 +576,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                                 borderRadius: BorderRadius.circular(12),
                                               ),
                                             ),
-                                            child: isLoading
+                                            child: isEmailLoading
                                                 ? SizedBox(
                                                     height: isVerySmallScreen ? 16 : 20,
                                                     width: isVerySmallScreen ? 16 : 20,
@@ -702,9 +641,96 @@ class _SignUpPageState extends State<SignUpPage> {
 
                                         SizedBox(height: isVerySmallScreen ? 12 : (isSmallScreen ? 16 : 20)),
 
+                                        // OR Divider (only show if not using Google signup)
+                                        if (!isGoogleSignUp) ...[
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Divider(
+                                                  color: isDarkMode ? Colors.white30 : Colors.black26,
+                                                  thickness: 1,
+                                                ),
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                                child: Text(
+                                                  'OR',
+                                                  style: TextStyle(
+                                                    color: isDarkMode ? Colors.white60 : Colors.black54,
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: isVerySmallScreen ? 12 : (isSmallScreen ? 13 : 14),
+                                                  ),
+                                                ),
+                                              ),
+                                              Expanded(
+                                                child: Divider(
+                                                  color: isDarkMode ? Colors.white30 : Colors.black26,
+                                                  thickness: 1,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: isVerySmallScreen ? 12 : (isSmallScreen ? 16 : 20)),
+
+                                          // Google Sign-Up Button (moved to bottom like LoginPage)
+                                          AnimatedContainer(
+                                            duration: const Duration(milliseconds: 200),
+                                            width: double.infinity,
+                                            height: isVerySmallScreen ? 42 : (isSmallScreen ? 45 : 52),
+                                            child: ElevatedButton(
+                                              onPressed: isAnyLoading ? null : _signUpWithGoogle,
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
+                                                foregroundColor: isDarkMode ? Colors.white : Colors.black87,
+                                                elevation: 2,
+                                                shadowColor: Colors.black26,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  side: BorderSide(
+                                                    color: isDarkMode ? Colors.grey[600]! : Colors.grey.shade300,
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                              ),
+                                              child: isGoogleLoading
+                                                  ? SizedBox(
+                                                      height: isVerySmallScreen ? 16 : 20,
+                                                      width: isVerySmallScreen ? 16 : 20,
+                                                      child: CircularProgressIndicator(
+                                                        color: isDarkMode ? Colors.white : Colors.black54,
+                                                        strokeWidth: 2,
+                                                      ),
+                                                    )
+                                                  : Row(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Container(
+                                                          width: isVerySmallScreen ? 16 : 20,
+                                                          height: isVerySmallScreen ? 16 : 20,
+                                                          child: CustomPaint(
+                                                            painter: GoogleIconPainter(),
+                                                          ),
+                                                        ),
+                                                        const SizedBox(width: 12),
+                                                        Text(
+                                                          'GOOGLE SIGN UP',
+                                                          style: TextStyle(
+                                                            fontSize: isVerySmallScreen ? 12 : (isSmallScreen ? 14 : 16),
+                                                            fontWeight: FontWeight.bold,
+                                                            color: isDarkMode ? Colors.white : Colors.black87,
+                                                            letterSpacing: 1,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                            ),
+                                          ),
+                                          SizedBox(height: isVerySmallScreen ? 12 : (isSmallScreen ? 16 : 20)),
+                                        ],
+
                                         // Sign in link
                                         TextButton(
-                                          onPressed: isLoading
+                                          onPressed: isAnyLoading
                                               ? null
                                               : () => Navigator.pushReplacementNamed(context, '/login'),
                                           style: TextButton.styleFrom(
@@ -958,4 +984,77 @@ class _SignUpPageState extends State<SignUpPage> {
       ),
     );
   }
+}
+
+// Add the GoogleIconPainter class (same as in LoginPage)
+class GoogleIconPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    
+    // Google "G" colors
+    final redPaint = Paint()..color = const Color(0xFFEA4335);
+    final yellowPaint = Paint()..color = const Color(0xFFFBBC05);
+    final greenPaint = Paint()..color = const Color(0xFF34A853);
+    final bluePaint = Paint()..color = const Color(0xFF4285F4);
+    
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    
+    // Draw the Google "G" logo
+    // Blue section (top right)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -1.57, // -90 degrees in radians
+      1.57,  // 90 degrees in radians
+      true,
+      bluePaint,
+    );
+    
+    // Green section (bottom right)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      0,     // 0 degrees
+      1.57,  // 90 degrees
+      true,
+      greenPaint,
+    );
+    
+    // Yellow section (bottom left)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      1.57,  // 90 degrees
+      1.57,  // 90 degrees
+      true,
+      yellowPaint,
+    );
+    
+    // Red section (top left)
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      3.14,  // 180 degrees
+      1.57,  // 90 degrees
+      true,
+      redPaint,
+    );
+    
+    // Draw white circle in center to create the "G" shape
+    final whitePaint = Paint()..color = Colors.white;
+    canvas.drawCircle(center, radius * 0.5, whitePaint);
+    
+    // Draw the horizontal line to complete the "G"
+    final linePaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..strokeWidth = radius * 0.2
+      ..strokeCap = StrokeCap.round;
+    
+    canvas.drawLine(
+      Offset(center.dx, center.dy),
+      Offset(center.dx + radius * 0.7, center.dy),
+      linePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
