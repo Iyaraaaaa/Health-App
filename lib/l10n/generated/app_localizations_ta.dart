@@ -84,7 +84,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get success => 'வெற்றி';
 
   @override
-  String get formSubmittedSuccess => 'படிவம் வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது.';
+  String get formSubmittedSuccess => 'படிவம் வெற்றிகரமாக சமர்ப்பிக்கப்பட்டது!';
 
   @override
   String get ok => 'சரி';
@@ -320,6 +320,9 @@ class AppLocalizationsTa extends AppLocalizations {
 
   @override
   String get name => 'பெயர்';
+
+  @override
+  String get uploadCSV => 'CSV கோப்பை பதிவேற்றவும்';
 
   @override
   String get pleaseCheckNIC =>

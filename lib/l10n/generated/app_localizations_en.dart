@@ -84,8 +84,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get success => 'Success';
 
   @override
-  String get formSubmittedSuccess =>
-      'The form has been successfully submitted.';
+  String get formSubmittedSuccess => 'Form Submitted Successfully!';
 
   @override
   String get ok => 'OK';
@@ -320,6 +319,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get name => 'Name';
+
+  @override
+  String get uploadCSV => 'Upload CSV';
 
   @override
   String get pleaseCheckNIC => 'Please check the NIC number and try again.';

@@ -253,7 +253,7 @@ abstract class AppLocalizations {
   /// No description provided for @formSubmittedSuccess.
   ///
   /// In en, this message translates to:
-  /// **'The form has been successfully submitted.'**
+  /// **'Form Submitted Successfully!'**
   String get formSubmittedSuccess;
 
   /// No description provided for @ok.
@@ -699,6 +699,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get name;
+
+  /// No description provided for @uploadCSV.
+  ///
+  /// In en, this message translates to:
+  /// **'Upload CSV'**
+  String get uploadCSV;
 
   /// No description provided for @pleaseCheckNIC.
   ///
